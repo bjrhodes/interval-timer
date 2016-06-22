@@ -19,8 +19,93 @@
             <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
         <![endif]-->
 
-        <!-- Add your site or application content here -->
-        <p>Hello world! This is HTML5 Boilerplate.</p>
+        <section id="choose-workout">
+            <ul class="workout-list">
+                <li class="workout">
+                    <h4 class="workout__title">Workout title</h4>
+                    <div class="workout__actions">
+                        <a href="" class="btn workout__start"></a>
+                        <a href="" class="btn workout__edit"></a>
+                    </div>
+                </li>
+                <li class="workout">
+                    <h4 class="workout__title">Another workout</h4>
+                    <div class="workout__actions">
+                        <a href="" class="btn workout__start"></a>
+                        <a href="" class="btn workout__edit"></a>
+                    </div>
+                </li>
+                <li class="workout">
+                    <h4 class="workout__title">The best workout</h4>
+                    <div class="workout__actions">
+                        <a href="" class="btn workout__start"></a>
+                        <a href="" class="btn workout__edit"></a>
+                    </div>
+                </li>
+            </ul>
+            <div class="workout-list__actions">
+                <a href="" class="btn workouts__add">Create new Workout</a>
+            </div>
+        </section>
+
+        <section id="do-workout">
+            <div class="current-interval">
+                <div class="current-interval_action"></div>
+                <div class="current-interval__timer"></div>
+            </div>
+            <div class="next-interval">
+                <div class="next-interval__action"></div>
+                <div class="next-interval__timer"></div>
+            </div>
+        </section>
+
+        <section id="edit-workout">
+            <input type="text" class="input" id="workout-name" name="workout-name">
+            <ol class="interval-list">
+                <li class="interval">
+                    <h4 class="interval__action">Interval action</h4>
+                    <p class="interval__time">30s</p>
+                    <div class="drag-handle drag-handle--list">≡</div>
+                </li>
+                <li class="interval">
+                    <h4 class="interval__action">Rest</h4>
+                    <p class="interval__time">30s</p>
+                    <div class="drag-handle drag-handle--list">≡</div>
+                </li>
+                <li class="interval">
+                    <h4 class="interval__action">Interval action</h4>
+                    <p class="interval__time">30s</p>
+                    <div class="drag-handle drag-handle--list">≡</div>
+                </li>
+                <li class="interval">
+                    <h4 class="interval__action">Interval action</h4>
+                    <p class="interval__time">30s</p>
+                    <div class="drag-handle drag-handle--list">≡</div>
+                </li>
+                <li class="interval">
+                    <h4 class="interval__action">Rest</h4>
+                    <p class="interval__time">30s</p>
+                    <div class="drag-handle drag-handle--list">≡</div>
+                </li>
+                <li class="interval">
+                    <h4 class="interval__action">Interval action</h4>
+                    <p class="interval__time">30s</p>
+                    <div class="drag-handle drag-handle--list">≡</div>
+                </li>
+            </ol>
+            <div class="interval-list__actions">
+                <input type="text" class="input" id="new-interval-name">
+                <input type="text" class="input" id="new-interval-duration">
+                <select name="" id="new-interval-units">
+                    <option value="seconds">seconds</option>
+                    <option value="minutes">minutes</option>
+                    <option value="hours">hours (...really?)</option>
+                </select>
+                <a href="" class="btn interval__add">Add interval</a>
+            </div>
+
+        </section>
+
 
         <script src="https://code.jquery.com/jquery-{{JQUERY_VERSION}}.min.js"></script>
         <script>window.jQuery || document.write('<script src="js/vendor/jquery-{{JQUERY_VERSION}}.min.js"><\/script>')</script>
