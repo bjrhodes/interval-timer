@@ -1,1 +1,47 @@
+.main-nav {
+    text-align: center;
+}
+.main-nav__list {
+    list-style: none;
+}
+.main-nav__item {
+    display: inline-block;
+    padding: 1em;
+}
+.main-nav__link {
+    display: block;
+    text-decoration: none;
+    border: 1px solid #999;
+    border-radius: 1em;
+    padding: 0.5em 1em;
+}
+.main-nav__link:active,
+.main-nav__link:hover {
+    background: #999;
+    color: white;
+}
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
 section { display: none; }
+
+.interval-timer {
+    text-align: center;
+}
+.current-interval {
+    border: 1px solid #444;
+    border-radius: 2em;
+    padding: 2em;
+}
+.current-interval__timer {
+    font-size: 8em;
+}
+.current-interval__action {
+    font-size: 3em;
+}
+.next-interval {
+    padding: 3em 0 0 0;
+    font-size: 2em;
+}

@@ -13,111 +13,115 @@
         <link rel="stylesheet" href="css/normalize.css">
         <link rel="stylesheet" href="css/main.css">
         <link rel="stylesheet" href="css/layout.css">
-        <script src="js/vendor/modernizr-2.8.3.min.js"></script>
     </head>
     <body>
         <!--[if lt IE 8]>
             <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
         <![endif]-->
 
-        <nav>
-            <ul>
-                <li><a href="#workouts">View all</a></li>
-                <li><a href="#editworkout">Example edit</a></li>
-                <li><a href="#timer">Example Timer</a></li>
+        <nav class="main-nav">
+            <ul class="main-nav__list">
+                <li class="main-nav__item"><a class="main-nav__link" href="#">View all</a></li>
+                <li class="main-nav__item"><a class="main-nav__link" href="#editworkout">Example edit</a></li>
+                <li class="main-nav__item"><a class="main-nav__link" href="#timer">Example Timer</a></li>
             </ul>
         </nav>
 
-        <section id="workouts">
-            <ul class="workout-list">
-                <li class="workout">
-                    <h4 class="workout__title">Workout title</h4>
-                    <div class="workout__actions">
-                        <a href="" class="btn workout__start"></a>
-                        <a href="" class="btn workout__edit"></a>
-                    </div>
-                </li>
-                <li class="workout">
-                    <h4 class="workout__title">Another workout</h4>
-                    <div class="workout__actions">
-                        <a href="" class="btn workout__start"></a>
-                        <a href="" class="btn workout__edit"></a>
-                    </div>
-                </li>
-                <li class="workout">
-                    <h4 class="workout__title">The best workout</h4>
-                    <div class="workout__actions">
-                        <a href="" class="btn workout__start"></a>
-                        <a href="" class="btn workout__edit"></a>
-                    </div>
-                </li>
-            </ul>
-            <div class="workout-list__actions">
-                <a href="" class="btn workouts__add">Create new Workout</a>
-            </div>
-        </section>
+        <div class="container">
 
-        <section id="timer">
-            <div class="current-interval">
-                <div class="current-interval_action">Interval action</div>
-                <div class="current-interval__timer">30s</div>
-            </div>
-            <div class="next-interval">
-                <div class="next-interval__action">Next action</div>
-                <div class="next-interval__timer">1:00</div>
-            </div>
-        </section>
+            <section id="workouts">
+                <ul class="workout-list">
+                    <li class="workout">
+                        <h4 class="workout__title">Workout title</h4>
+                        <div class="workout__actions">
+                            <a href="" class="btn workout__start"></a>
+                            <a href="" class="btn workout__edit"></a>
+                        </div>
+                    </li>
+                    <li class="workout">
+                        <h4 class="workout__title">Another workout</h4>
+                        <div class="workout__actions">
+                            <a href="" class="btn workout__start"></a>
+                            <a href="" class="btn workout__edit"></a>
+                        </div>
+                    </li>
+                    <li class="workout">
+                        <h4 class="workout__title">The best workout</h4>
+                        <div class="workout__actions">
+                            <a href="" class="btn workout__start"></a>
+                            <a href="" class="btn workout__edit"></a>
+                        </div>
+                    </li>
+                </ul>
+                <div class="workout-list__actions">
+                    <a href="" class="btn workouts__add">Create new Workout</a>
+                </div>
+            </section>
 
-        <section id="edit-workout">
-            <input type="text" class="input" id="workout-name" name="workout-name">
-            <ol class="interval-list">
-                <li class="interval">
-                    <h4 class="interval__action">Interval action</h4>
-                    <p class="interval__time">30s</p>
-                    <div class="drag-handle drag-handle--list">≡</div>
-                </li>
-                <li class="interval">
-                    <h4 class="interval__action">Rest</h4>
-                    <p class="interval__time">30s</p>
-                    <div class="drag-handle drag-handle--list">≡</div>
-                </li>
-                <li class="interval">
-                    <h4 class="interval__action">Interval action</h4>
-                    <p class="interval__time">30s</p>
-                    <div class="drag-handle drag-handle--list">≡</div>
-                </li>
-                <li class="interval">
-                    <h4 class="interval__action">Interval action</h4>
-                    <p class="interval__time">30s</p>
-                    <div class="drag-handle drag-handle--list">≡</div>
-                </li>
-                <li class="interval">
-                    <h4 class="interval__action">Rest</h4>
-                    <p class="interval__time">30s</p>
-                    <div class="drag-handle drag-handle--list">≡</div>
-                </li>
-                <li class="interval">
-                    <h4 class="interval__action">Interval action</h4>
-                    <p class="interval__time">30s</p>
-                    <div class="drag-handle drag-handle--list">≡</div>
-                </li>
-            </ol>
-            <div class="interval-list__actions">
-                <input type="text" class="input" id="new-interval-name">
-                <input type="text" class="input" id="new-interval-duration">
-                <select name="" id="new-interval-units">
-                    <option value="seconds">seconds</option>
-                    <option value="minutes">minutes</option>
-                    <option value="hours">hours (...really?)</option>
-                </select>
-                <a href="" class="btn interval__add">Add interval</a>
-            </div>
+            <section id="timer" class="interval-timer">
+                <div class="current-interval">
+                    <div class="current-interval__timer">30s</div>
+                    <div class="current-interval__action">Interval action</div>
+                </div>
+                <div class="next-interval">
+                    <div class="next-interval__action"><span class="muted">Up next:</span> Next action</div>
+                    <div class="next-interval__timer">(1:00)</div>
+                </div>
+            </section>
 
-        </section>
+            <section id="edit-workout">
+                <input type="text" class="input" id="workout-name" name="workout-name">
+                <ol class="interval-list">
+                    <li class="interval">
+                        <h4 class="interval__action">Interval action</h4>
+                        <p class="interval__time">30s</p>
+                        <div class="drag-handle drag-handle--list">≡</div>
+                    </li>
+                    <li class="interval">
+                        <h4 class="interval__action">Rest</h4>
+                        <p class="interval__time">30s</p>
+                        <div class="drag-handle drag-handle--list">≡</div>
+                    </li>
+                    <li class="interval">
+                        <h4 class="interval__action">Interval action</h4>
+                        <p class="interval__time">30s</p>
+                        <div class="drag-handle drag-handle--list">≡</div>
+                    </li>
+                    <li class="interval">
+                        <h4 class="interval__action">Interval action</h4>
+                        <p class="interval__time">30s</p>
+                        <div class="drag-handle drag-handle--list">≡</div>
+                    </li>
+                    <li class="interval">
+                        <h4 class="interval__action">Rest</h4>
+                        <p class="interval__time">30s</p>
+                        <div class="drag-handle drag-handle--list">≡</div>
+                    </li>
+                    <li class="interval">
+                        <h4 class="interval__action">Interval action</h4>
+                        <p class="interval__time">30s</p>
+                        <div class="drag-handle drag-handle--list">≡</div>
+                    </li>
+                </ol>
+                <div class="interval-list__actions">
+                    <input type="text" class="input" id="new-interval-name">
+                    <input type="text" class="input" id="new-interval-duration">
+                    <select name="" id="new-interval-units">
+                        <option value="seconds">seconds</option>
+                        <option value="minutes">minutes</option>
+                        <option value="hours">hours (...really?)</option>
+                    </select>
+                    <a href="" class="btn interval__add">Add interval</a>
+                </div>
+
+            </section>
+        </div>
 
         <script src="js/src/routers/hashed.js"></script>
         <script src="js/src/routers/plain.js"></script>
+        <script src="js/src/utilities/beep.js"></script>
         <script src="js/src/utilities/classy.js"></script>
+        <script src="js/src/utilities/countdown.js"></script>
         <script src="js/src/utilities/debounce.js"></script>
         <script src="js/src/utilities/enumerable.js"></script>
         <script src="js/src/views/editworkout.js"></script>

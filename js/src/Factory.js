@@ -3,15 +3,17 @@ var mml = mml || {};
 mml.Factory = function(config, document) {
     'use strict';
 
-    var self, classy, debounce, cached = {
+    var self, beep, classy, countdown, debounce, cached = {
         views : {}
     };
 
     // allow this to be injected for mocking purposes.
     document = document || window.document;
 
-    classy   = new mml.utilities.classy(document);
-    debounce = new mml.utilities.debounce(window);
+    beep      = new mml.utilities.beep();
+    classy    = new mml.utilities.classy(document);
+    countdown = new mml.utilities.countdown();
+    debounce  = new mml.utilities.debounce(window);
 
     // just hate this clunky syntax...
     function getEl(id) {
@@ -30,7 +32,10 @@ mml.Factory = function(config, document) {
         return cached.router;
     }
 
-    function view(route) {;
+    function view(route) {
+        if (route.view === 'timer') {
+            return new mml.views['timer'](getEl(route.id), countdown, beep);
+        }
         return new mml.views[route.view](getEl(route.id));
     };
 
