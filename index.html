@@ -12,6 +12,7 @@
 
         <link rel="stylesheet" href="css/normalize.css">
         <link rel="stylesheet" href="css/main.css">
+        <link rel="stylesheet" href="css/layout.css">
         <script src="js/vendor/modernizr-2.8.3.min.js"></script>
     </head>
     <body>
@@ -19,7 +20,15 @@
             <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
         <![endif]-->
 
-        <section id="choose-workout">
+        <nav>
+            <ul>
+                <li><a href="#workouts">View all</a></li>
+                <li><a href="#editworkout">Example edit</a></li>
+                <li><a href="#timer">Example Timer</a></li>
+            </ul>
+        </nav>
+
+        <section id="workouts">
             <ul class="workout-list">
                 <li class="workout">
                     <h4 class="workout__title">Workout title</h4>
@@ -48,14 +57,14 @@
             </div>
         </section>
 
-        <section id="do-workout">
+        <section id="timer">
             <div class="current-interval">
-                <div class="current-interval_action"></div>
-                <div class="current-interval__timer"></div>
+                <div class="current-interval_action">Interval action</div>
+                <div class="current-interval__timer">30s</div>
             </div>
             <div class="next-interval">
-                <div class="next-interval__action"></div>
-                <div class="next-interval__timer"></div>
+                <div class="next-interval__action">Next action</div>
+                <div class="next-interval__timer">1:00</div>
             </div>
         </section>
 
@@ -106,17 +115,16 @@
 
         </section>
 
-
-        <script src="https://code.jquery.com/jquery-{{JQUERY_VERSION}}.min.js"></script>
-        <script>window.jQuery || document.write('<script src="js/vendor/jquery-{{JQUERY_VERSION}}.min.js"><\/script>')</script>
-        <script src="js/plugins.js"></script>
+        <script src="js/src/routers/hashed.js"></script>
+        <script src="js/src/routers/plain.js"></script>
+        <script src="js/src/utilities/classy.js"></script>
+        <script src="js/src/utilities/debounce.js"></script>
+        <script src="js/src/utilities/enumerable.js"></script>
+        <script src="js/src/views/editworkout.js"></script>
+        <script src="js/src/views/timer.js"></script>
+        <script src="js/src/views/workouts.js"></script>
+        <script src="js/src/AppController.js"></script>
+        <script src="js/src/Factory.js"></script>
         <script src="js/main.js"></script>
-
-        <!-- Google Analytics: change UA-XXXXX-Y to be your site's ID. -->
-        <script>
-            window.ga=function(){ga.q.push(arguments)};ga.q=[];ga.l=+new Date;
-            ga('create','UA-XXXXX-Y','auto');ga('send','pageview')
-        </script>
-        <script src="https://www.google-analytics.com/analytics.js" async defer></script>
     </body>
 </html>
