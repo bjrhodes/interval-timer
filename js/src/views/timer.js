@@ -6,6 +6,7 @@ mml.views.timer = function (el, state, reportError, factory) {
 
     var countdown = factory.countdown(),
         beep = factory.beep(),
+        format = factory.format(),
         intervals = [],
         els = {
             time: null,
@@ -14,75 +15,43 @@ mml.views.timer = function (el, state, reportError, factory) {
             nextTime: null,
         };
 
-    function timeInSeconds(time, units) {
-        switch (units) {
-            case 'hours':
-                time = time * 60;
-                // intentional fallthrough. Should accumulate actions
-            case 'minutes':
-                time = time * 60;
-        }
 
-        return time;
-    }
-
-    function setupInterval(action, duration, next) {
-        els.time.innerHTML = formattedTime(duration);
-        els.action.innerHTML = action;
+    function setupInterval(now, next) {
+        els.time.innerHTML = format.duration(format.timeInSeconds(now.time, now.unit));
+        els.action.innerHTML = now.action;
 
         if (next.action && next.time && next.unit) {
             els.nextAction.innerHTML = next.action;
-            els.nextTime.innerHTML = '(' + formattedTime(timeInSeconds(next.time, next.unit)) + ')';
+            els.nextTime.innerHTML = '(' + format.duration(format.timeInSeconds(next.time, next.unit)) + ')';
         } else {
             els.nextAction.innerHTML = "Completed";
             els.nextTime.innerHTML = '-';
         }
     }
 
-    function zeropad(num) {
-        var str = '' + num;
-        if (num === 0) {
-            return '00';
-        }
-        return (str.length === 1) ? '0' + str : str;
-    }
-
-    function formattedTime(seconds) {
-        var minutes, hours;
-        if (seconds < 60) {
-            return seconds + 's';
-        }
-        minutes = Math.floor(seconds / 60);
-        seconds = seconds - (minutes * 60);
-        if (minutes < 60) {
-            return minutes + ':' + zeropad(seconds);
-        }
-
-        hours = Math.floor(minutes / 60);
-        minutes = minutes - (hours * 60);
-
-        return hours + ':' + zeropad(minutes) + ':' + zeropad(seconds);
-    }
 
     function nextInterval() {
-        var now = intervals.shift();
-        var next = intervals.length ? intervals[0] : false;
+        var now, next, duration;
+        if (intervals.length === 0) {
+            els.nextAction.innerHTML = "-";
+            els.action.innerHTML = '-';
+            els.time.innerHTML = 'FIN';
+        }
+        now = intervals.shift();
+        next = intervals.length ? intervals[0] : false;
 
-        var duration = timeInSeconds(now.time, now.unit);
-
-        setupInterval(now.action, duration, next);
-
-        countdown(duration, countdownComplete, countdownUpdated);
+        setupInterval(now, next);
+        countdown(format.timeInSeconds(now.time, now.unit), countdownComplete, countdownUpdated);
     }
 
     function countdownComplete() {
-        els.time.innerHTML = 'FIN';
         beep();
         window.setTimeout(beep, 200);
+        nextInterval();
     }
 
     function countdownUpdated(seconds) {
-        els.time.innerHTML = formattedTime(seconds);
+        els.time.innerHTML = format.duration(seconds);
         if (seconds <= 5) {
             beep();
         }
