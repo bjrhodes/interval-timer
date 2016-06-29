@@ -1,7 +1,7 @@
 var mml = mml || {};
 mml.utilities = mml.utilities || {};
 
-mml.utilities.classy = function(document) {
+mml.utilities.Classy = function(document) {
     'use strict';
     var self,
         classList = {

@@ -5,7 +5,7 @@ mml.utilities = mml.utilities || {};
  * This slows firing to at most once every interval.
  *
  */
-mml.utilities.debounce = function(window) {
+mml.utilities.Debounce = function(window) {
     'use strict';
     var running = [];
 

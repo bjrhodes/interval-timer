@@ -1,19 +1,20 @@
 var mml = mml || {};
 
-mml.Factory = function(config, document) {
+mml.Factory = function(config, state, document) {
     'use strict';
 
-    var self, beep, classy, countdown, debounce, cached = {
+    var self, beep, classy, countdown, debounce, errorReporter, cached = {
         views : {}
     };
 
     // allow this to be injected for mocking purposes.
     document = document || window.document;
 
-    beep      = new mml.utilities.beep();
-    classy    = new mml.utilities.classy(document);
-    countdown = new mml.utilities.countdown();
-    debounce  = new mml.utilities.debounce(window);
+    beep      = new mml.utilities.Beep();
+    classy    = new mml.utilities.Classy(document);
+    countdown = new mml.utilities.Countdown();
+    debounce  = new mml.utilities.Debounce(window);
+    errorReporter = new mml.utilities.ErrorReporter(window);
 
     // just hate this clunky syntax...
     function getEl(id) {
@@ -33,10 +34,7 @@ mml.Factory = function(config, document) {
     }
 
     function view(route) {
-        if (route.view === 'timer') {
-            return new mml.views['timer'](getEl(route.id), countdown, beep);
-        }
-        return new mml.views[route.view](getEl(route.id));
+        return new mml.views[route.view](getEl(route.id), state, errorReporter.reporter, self);
     };
 
     function controller() {
@@ -44,9 +42,11 @@ mml.Factory = function(config, document) {
     };
 
     self = {
-        view : view,
+        view:       view,
         controller: controller,
-        router : router
+        router:     router,
+        countdown:  function() { return countdown; },
+        beep:       function() { return beep; }
     }
 
     // need to wrangle this a little so we can inject self into builders.
