@@ -31,25 +31,25 @@
 
             <section id="workouts">
                 <ul class="workout-list">
-                    <li class="workout">
-                        <h4 class="workout__title">Workout title</h4>
-                        <div class="workout__actions">
-                            <a href="" class="btn workout__start"></a>
-                            <a href="" class="btn workout__edit"></a>
+                    <li class="workout-list__workout clearfix">
+                        <h4 class="workout-list__title">Workout title</h4>
+                        <div class="workout-list__actions">
+                            <a href="" class="btn workout__start">start</a>
+                            <a href="" class="btn workout__edit">edit</a>
                         </div>
                     </li>
-                    <li class="workout">
-                        <h4 class="workout__title">Another workout</h4>
-                        <div class="workout__actions">
-                            <a href="" class="btn workout__start"></a>
-                            <a href="" class="btn workout__edit"></a>
+                    <li class="workout-list__workout clearfix">
+                        <h4 class="workout-list__title">Another workout</h4>
+                        <div class="workout-list__actions">
+                            <a href="" class="btn workout__start">start</a>
+                            <a href="" class="btn workout__edit">edit</a>
                         </div>
                     </li>
-                    <li class="workout">
-                        <h4 class="workout__title">The best workout</h4>
-                        <div class="workout__actions">
-                            <a href="" class="btn workout__start"></a>
-                            <a href="" class="btn workout__edit"></a>
+                    <li class="workout-list__workout clearfix">
+                        <h4 class="workout-list__title">The best workout</h4>
+                        <div class="workout-list__actions">
+                            <a href="" class="btn workout__start">start</a>
+                            <a href="" class="btn workout__edit">edit</a>
                         </div>
                     </li>
                 </ul>
@@ -104,14 +104,23 @@
                         <div class="drag-handle drag-handle--list">≡</div>
                     </li>
                 </ol>
-                <div class="interval-list__actions">
-                    <input type="text" class="input" id="new-interval-name">
-                    <input type="text" class="input" id="new-interval-duration">
-                    <select name="" id="new-interval-units" class="select">
-                        <option value="seconds">seconds</option>
-                        <option value="minutes">minutes</option>
-                        <option value="hours">hours (...really?)</option>
-                    </select>
+                <div class="interval-list__actions clearfix">
+                    <h4 class="interval-list__actions__title">Add a new interval</h4>
+                    <label class="block-label" for="new-interval-name">Interval title</label>
+                    <input type="text" class="input" id="new-interval-name" placeholder="Go hard or go home">
+
+                    <label class="block-label" for="new-interval-duration">Interval duration (numbers only)</label>
+                    <div class="interval-list__actions-details">
+                        <input type="text" class="input" id="new-interval-duration" placeholder="30">
+                    </div>
+                    <div class="interval-list__actions-units">
+                        <select name="" id="new-interval-units" class="select">
+                            <option value="seconds">seconds</option>
+                            <option value="minutes">minutes</option>
+                            <option value="hours">hours (...really?)</option>
+                        </select>
+                    </div>
+
                     <a href="" class="btn interval__add">Add interval</a>
                 </div>
 

@@ -44,15 +44,23 @@ section { display: none; }
     width: 0.25em;
     border-left: 4px solid black;
     border-right: 4px solid black;
+    cursor: pointer;
 }
 .interval-timer__status--paused {
+    border: none;
+    width: 1em;
+
+    /* Pushing the border arrow off into the :after element to give the cursor: pointer; a hover target. (Technically
+        the arrow has no width) */
+}
+.interval-timer__status--paused:after {
     border: 0.6em solid transparent;
     content: "";
+    display: block;
     height: 0;
     width: 0;
     pointer-events: none;
     border-left: 1em solid black;
-    margin-right: -1em;
 }
 .current-interval__timer {
     font-size: 8em;
@@ -98,10 +106,14 @@ section { display: none; }
     display: block;
     box-shadow: none;
     border: 1px solid rgba(0,0,0,0.2);
+    width: calc(100% - 1em);
 }
+.select { margin-top: 0.7em; }
 .edit-workout__input {
     font-size: 1.2em;
-    width: calc(100% - 1em);
+}
+.block-label {
+    display: block;
 }
 
 .btn {
@@ -114,4 +126,44 @@ section { display: none; }
 }
 .btn:hover {
     background: #555;
+}
+.interval-list__actions {
+    margin-bottom: 2em;
+    padding: 1em;
+    border: 1px solid #999;
+    border-radius: 0.5em;
+}
+.interval__add {
+    float: left;
+    clear: both;
+}
+.interval-list__actions__title {
+    margin: 0 0 0.6em;
+}
+.interval-list__actions-details {
+    float: left;
+    clear: left;
+    width: calc(50% - 1em);
+    padding: 0 1em 0 0;
+    margin-bottom: 0.5em;
+}
+.interval-list__actions-units {
+    width: 50%;
+    float: right;
+}
+
+.workout-list {
+    list-style: none;
+}
+.workout-list__workout {
+    border-bottom: 1px solid black;
+    padding-bottom: 1em;
+    margin-bottom: 1em;
+}
+.workout-list__title {
+    float: left;
+    margin: 0;
+}
+.workout-list__actions {
+    float: right;
 }

@@ -46,6 +46,7 @@ mml.Factory = function(config, state, document) {
         view:       view,
         controller: controller,
         router:     router,
+        classy:     function() { return classy; },
         countdown:  function() { return countdown; },
         beep:       function() { return beep; },
         format:     function() { return format; }

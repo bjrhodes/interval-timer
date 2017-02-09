@@ -7,6 +7,7 @@ mml.views.timer = function (el, state, reportError, factory) {
     var countdown = factory.countdown(),
         beep = factory.beep(),
         format = factory.format(),
+        classy = factory.classy(),
         intervals = [],
         timerRunning = false,
         els = {
@@ -70,9 +71,9 @@ mml.views.timer = function (el, state, reportError, factory) {
     function playPause(e) {
         if (timerRunning) {
             countdown.pause();
-            els.status.classList.add('interval-timer__status--paused');
+            classy.add(els.status, 'interval-timer__status--paused');
         } else {
-            els.status.classList.remove('interval-timer__status--paused');
+            classy.remove(els.status, 'interval-timer__status--paused');
             countdown.start();
         }
         timerRunning = !timerRunning;
