@@ -7,11 +7,13 @@ mml.utilities.Countdown = function() {
         update,
         clearCurrent,
         targetTime,
+        msRemaining, // this one is here to allow for more accurate pauses
         currentCount = 0;
 
     function tickDown() {
         currentCount--;
-        targetTime = targetTime + 1000;
+        msRemaining = 1000;
+        targetTime = targetTime + msRemaining;
         if (typeof(update) === 'function') {
             update(currentCount);
         }
@@ -30,21 +32,36 @@ mml.utilities.Countdown = function() {
         clearCurrent = window.requestAnimationFrame(runTimer);
     }
 
-    // Sets a target of 1 second into the future and starts a timer. Using requestAnimationFrame for better accuracy than
-    // the easier-to-read setTimeout.
-    return function (countTo, callback, notify) {
-        var now = window.performance.now();
+    function pause() {
+        var now;
         if (clearCurrent) {
             window.cancelAnimationFrame(clearCurrent);
+            now = window.performance.now();
+            msRemaining = targetTime - now;
         }
-        if (countTo <= 0) {
-            return callback();
-        }
+    }
 
-        complete = callback;
-        update = notify;
-        currentCount = countTo;
-        targetTime = now + 1000;
-        runTimer();
-    };
+    // Sets a target of 1 second into the future and starts a timer. Using requestAnimationFrame for better accuracy than
+    // the easier-to-read setTimeout.
+    return {
+        init: function (countTo, callback, notify) {
+            pause();
+            if (countTo <= 0) {
+                return callback();
+            }
+
+            complete = callback;
+            update = notify;
+            currentCount = countTo;
+            msRemaining = 1000;
+        },
+        start: function () {
+            var now = window.performance.now();
+            targetTime = now + msRemaining;
+            if (currentCount > 0) {
+                runTimer();
+            }
+        },
+        pause: pause
+    }
 };

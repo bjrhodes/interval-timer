@@ -8,11 +8,13 @@ mml.views.timer = function (el, state, reportError, factory) {
         beep = factory.beep(),
         format = factory.format(),
         intervals = [],
+        timerRunning = false,
         els = {
             time: null,
             action: null,
             nextAction: null,
             nextTime: null,
+            status: null
         };
 
 
@@ -29,8 +31,7 @@ mml.views.timer = function (el, state, reportError, factory) {
         }
     }
 
-
-    function nextInterval() {
+    function findInterval() {
         var now, next, duration;
         if (intervals.length === 0) {
             els.nextAction.innerHTML = "-";
@@ -39,9 +40,18 @@ mml.views.timer = function (el, state, reportError, factory) {
         }
         now = intervals.shift();
         next = intervals.length ? intervals[0] : false;
+        return {now: now, next: next};
+    }
 
-        setupInterval(now, next);
-        countdown(format.timeInSeconds(now.time, now.unit), countdownComplete, countdownUpdated);
+    function nextInterval() {
+        var nextUp = findInterval();
+        setupInterval(nextUp.now, nextUp.next);
+        initTimer(nextUp.now);
+        countdown.start();
+    }
+
+    function initTimer(interval) {
+        countdown.init(format.timeInSeconds(interval.time, interval.unit), countdownComplete, countdownUpdated);
     }
 
     function countdownComplete() {
@@ -57,10 +67,33 @@ mml.views.timer = function (el, state, reportError, factory) {
         }
     }
 
+    function playPause(e) {
+        if (timerRunning) {
+            countdown.pause();
+            els.status.classList.add('interval-timer__status--paused');
+        } else {
+            els.status.classList.remove('interval-timer__status--paused');
+            countdown.start();
+        }
+        timerRunning = !timerRunning;
+        e.preventDefault();
+    }
+
+    function attachHandlers() {
+        el.addEventListener('click', playPause);
+    }
+
+    function removeHandlers() {
+        el.removeEventListener('click', playPause);
+    }
+
     function teardown() {
         el.style.display = '';
+        removeHandlers();
     }
+
     function setup() {
+        var nextUp;
         intervals = JSON.parse(JSON.stringify(state.intervals));
 
         if (!intervals || typeof(intervals.forEach) !== 'function') {
@@ -75,8 +108,12 @@ mml.views.timer = function (el, state, reportError, factory) {
         els.action = el.querySelector('.current-interval__action');
         els.nextAction = el.querySelector('.next-interval__action');
         els.nextTime = el.querySelector('.next-interval__time');
+        els.status = el.querySelector('.interval-timer__status');
 
-        nextInterval();
+        nextUp = findInterval();
+        setupInterval(nextUp.now, nextUp.next);
+        initTimer(nextUp.now);
+        attachHandlers();
     }
 
     return {
