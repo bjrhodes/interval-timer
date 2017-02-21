@@ -31,27 +31,7 @@
 
             <section id="workouts">
                 <ul class="workout-list">
-                    <li class="workout-list__workout clearfix">
-                        <h4 class="workout-list__title">Workout title</h4>
-                        <div class="workout-list__actions">
-                            <a href="" class="btn workout__start">start</a>
-                            <a href="" class="btn workout__edit">edit</a>
-                        </div>
-                    </li>
-                    <li class="workout-list__workout clearfix">
-                        <h4 class="workout-list__title">Another workout</h4>
-                        <div class="workout-list__actions">
-                            <a href="" class="btn workout__start">start</a>
-                            <a href="" class="btn workout__edit">edit</a>
-                        </div>
-                    </li>
-                    <li class="workout-list__workout clearfix">
-                        <h4 class="workout-list__title">The best workout</h4>
-                        <div class="workout-list__actions">
-                            <a href="" class="btn workout__start">start</a>
-                            <a href="" class="btn workout__edit">edit</a>
-                        </div>
-                    </li>
+                    <li>Loading workouts...</li>
                 </ul>
                 <div class="workout-list__actions">
                     <a href="" class="btn workouts__add">Create new Workout</a>
@@ -128,6 +108,7 @@
         </div>
 
         <script src="js/polyfills.js"></script>
+        <script src="node_modules/mustache/mustache.min.js"></script>
 
         <script src="js/src/routers/hashed.js"></script>
         <script src="js/src/routers/plain.js"></script>
@@ -138,6 +119,7 @@
         <script src="js/src/utilities/enumerable.js"></script>
         <script src="js/src/utilities/ErrorReporter.js"></script>
         <script src="js/src/utilities/format.js"></script>
+        <script src="js/src/utilities/tools.js"></script>
         <script src="js/src/views/editworkout.js"></script>
         <script src="js/src/views/timer.js"></script>
         <script src="js/src/views/workouts.js"></script>

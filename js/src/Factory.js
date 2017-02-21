@@ -1,9 +1,11 @@
+/* global Mustache */
+
 var mml = mml || {};
 
 mml.Factory = function(config, state, document) {
     'use strict';
 
-    var self, beep, classy, countdown, debounce, format, errorReporter, cached = {
+    var self, beep, classy, countdown, debounce, format, errorReporter, tools, cached = {
         views : {}
     };
 
@@ -16,6 +18,7 @@ mml.Factory = function(config, state, document) {
     debounce  = new mml.utilities.Debounce(window);
     errorReporter = new mml.utilities.ErrorReporter(window);
     format    = new mml.utilities.format(window);
+    tools     = mml.utilities.tools;
 
     // just hate this clunky syntax...
     function getEl(id) {
@@ -49,7 +52,9 @@ mml.Factory = function(config, state, document) {
         classy:     function() { return classy; },
         countdown:  function() { return countdown; },
         beep:       function() { return beep; },
-        format:     function() { return format; }
+        format:     function() { return format; },
+        tools:      function() { return tools; },
+        mustache:   function() { return Mustache; }
     }
 
     // need to wrangle this a little so we can inject self into builders.

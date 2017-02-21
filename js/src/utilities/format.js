@@ -3,6 +3,21 @@ mml.utilities = mml.utilities || {};
 
 mml.utilities.format = function() {
 
+    function splitDurations(seconds) {
+        var minutes, hours;
+
+        minutes = Math.floor(seconds / 60); // count how many minutes
+        seconds = seconds - (minutes * 60); // subtract the minutes from the total seconds
+        hours = Math.floor(minutes / 60); // count how many hours
+        minutes = minutes - (hours * 60); // subtract the hours from the total minutes
+
+        return {
+            hours: hours,
+            minutes: minutes,
+            seconds: seconds,
+        }
+    }
+
     function zeropad(num) {
         var str = '' + num;
         if (num === 0) {
@@ -14,21 +29,29 @@ mml.utilities.format = function() {
     /**
      * Takes a number of seconds as an integer and returns a formatted duration string
      */
-    function duration(seconds) {
-        var minutes, hours;
-        if (seconds < 60) {
-            return seconds + 's';
+    function durationAsClock(seconds) {
+        var times = splitDurations(seconds);
+        console.log(times);
+        return times.hours + ':' + zeropad(times.minutes) + ':' + zeropad(times.seconds);
+    }
+
+    function durationAsWords(seconds) {
+        var times = splitDurations(seconds),
+            str = '';
+
+        if (times.hours) {
+            str += times.hours + ' hour' + (times.hours === 1 ? '' : 's');
         }
-        minutes = Math.floor(seconds / 60);
-        seconds = seconds - (minutes * 60);
-        if (minutes < 60) {
-            return minutes + ':' + zeropad(seconds);
+        if (times.minutes) {
+            str += str.length ? ', ' : '';
+            str += times.minutes + ' minute' + (times.minutes === 1 ? '' : 's');
+        }
+        if (times.seconds) {
+            str += str.length ? ', ' : '';
+            str += times.seconds + ' second' + (times.seconds === 1 ? '' : 's');
         }
 
-        hours = Math.floor(minutes / 60);
-        minutes = minutes - (hours * 60);
-
-        return hours + ':' + zeropad(minutes) + ':' + zeropad(seconds);
+        return str;
     }
 
     /**
@@ -51,6 +74,7 @@ mml.utilities.format = function() {
 
     return {
         timeInSeconds: timeInSeconds,
-        duration: duration,
+        durationAsClock: durationAsClock,
+        durationAsWords: durationAsWords,
     }
 };

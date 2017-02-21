@@ -160,9 +160,13 @@ section { display: none; }
     padding-bottom: 1em;
     margin-bottom: 1em;
 }
+.workout-list__duration,
 .workout-list__title {
     float: left;
     margin: 0;
+}
+.workout-list__duration {
+    clear: left;
 }
 .workout-list__actions {
     float: right;

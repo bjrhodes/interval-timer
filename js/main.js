@@ -26,6 +26,20 @@
             {action: '14 m/h (recovery)', time: 3, unit: 'minutes'},
             {action: '10 m/h (cooldown)', time: 10, unit: 'minutes'},
         ],
+        workouts = [
+            {
+                "id": "workout-title",
+                "title": "Workout title",
+            },
+            {
+                "id": "another-workout",
+                "title": "Another Workout",
+            },
+            {
+                "id": "the-best-workout",
+                "title": "The Best workout",
+            },
+        ],
         config = {
             routes : new mml.utilities.enumerable([
                 {hash: '',            view: 'workouts',    id: 'workouts',    description: 'View all workouts'},
@@ -34,7 +48,8 @@
             ]),
         },
         state = {
-            intervals: intervals
+            intervals: intervals,
+            workouts: workouts
         },
         factory = new mml.Factory(config, state);
 

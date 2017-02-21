@@ -18,14 +18,13 @@ mml.views.timer = function (el, state, reportError, factory) {
             status: null
         };
 
-
     function setupInterval(now, next) {
-        els.time.innerHTML = format.duration(format.timeInSeconds(now.time, now.unit));
+        els.time.innerHTML = format.durationAsClock(format.timeInSeconds(now.time, now.unit));
         els.action.innerHTML = now.action;
 
         if (next.action && next.time && next.unit) {
             els.nextAction.innerHTML = next.action;
-            els.nextTime.innerHTML = '(' + format.duration(format.timeInSeconds(next.time, next.unit)) + ')';
+            els.nextTime.innerHTML = '(' + format.durationAsClock(format.timeInSeconds(next.time, next.unit)) + ')';
         } else {
             els.nextAction.innerHTML = "Completed";
             els.nextTime.innerHTML = '-';
@@ -62,7 +61,7 @@ mml.views.timer = function (el, state, reportError, factory) {
     }
 
     function countdownUpdated(seconds) {
-        els.time.innerHTML = format.duration(seconds);
+        els.time.innerHTML = format.durationAsClock(seconds);
         if (seconds <= 5) {
             beep();
         }
