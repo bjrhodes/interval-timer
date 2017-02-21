@@ -17,6 +17,21 @@ mml.utilities.enumerable = function(arr) {
 
         return found;
     };
+    var searchRegexBy = function(key, value) {
+        var found = false;
+
+        var search = function(hashmap) {
+            var regex = new RegExp(hashmap[key]);
+            if (regex.exec(value)) {
+                found = hashmap;
+                return true;
+            }
+        };
+
+        arr.some(search);
+
+        return found;
+    };
     var extractBy = function(key, value) {
         var found = false;
 

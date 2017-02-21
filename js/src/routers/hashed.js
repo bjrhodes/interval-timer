@@ -4,12 +4,13 @@ mml.routers = mml.routers || {};
 mml.routers.Hashed = function(window, knownRoutes) {
     'use strict';
     var current = '';
-    var transitionTo;
+    var transitionTo,
+        matcher = mml.routers.Matcher(knownRoutes);
 
     var hashChanged = function() {
         var hash = window.location.hash.substr(1);
-        var route = knownRoutes.searchBy('hash', hash);
-        if (route && route.id !== current.id) {
+        var route = matcher(hash, current.id);
+        if (route) {
             transitionTo(route, current);
             current = route;
         }
