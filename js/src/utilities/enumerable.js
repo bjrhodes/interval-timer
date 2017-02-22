@@ -48,8 +48,17 @@ mml.utilities.enumerable = function(arr) {
         return found;
     };
 
+    var sortBy = function(key) {
+        arr = arr.sort(function(a, b) {
+            return a[key] < b[key] ? -1 : (a[key] > b[key] ? 1 : 0);
+        });
+        return arr;
+    }
+
     arr.extractBy = extractBy;
     arr.searchBy  = searchBy;
+    arr.sortBy  = sortBy;
+    arr.searchRegexBy  = searchRegexBy;
 
     return arr;
 };
