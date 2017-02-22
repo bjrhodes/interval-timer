@@ -8,6 +8,8 @@ mml.views.timer = function (el, state, reportError, factory) {
         beep = factory.beep(),
         format = factory.format(),
         classy = factory.classy(),
+        router = factory.router(),
+        tools = factory.tools(),
         intervals = [],
         timerRunning = false,
         els = {
@@ -54,6 +56,23 @@ mml.views.timer = function (el, state, reportError, factory) {
         countdown.init(format.timeInSeconds(interval.time, interval.unit), countdownComplete, countdownUpdated);
     }
 
+    /**
+     * @todo this feels a bit wrong here. It's not really view stuff. Where could it go?
+     *
+     * @return {array} [description]
+     */
+    function getIntervals() {
+        var workout,
+            params = router.parameters();
+
+        if (params.length < 2) {
+            return [];
+        }
+
+        workout = state.workouts.extractBy('id', params[1]);
+        return tools.clone(workout.intervals);
+    }
+
     function countdownComplete() {
         beep();
         window.setTimeout(beep, 200);
@@ -94,7 +113,8 @@ mml.views.timer = function (el, state, reportError, factory) {
 
     function setup() {
         var nextUp;
-        intervals = JSON.parse(JSON.stringify(state.intervals));
+
+        intervals = getIntervals();
 
         if (!intervals || typeof(intervals.forEach) !== 'function') {
             reportError('Timer view could not read intervals.');

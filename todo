@@ -1,7 +1,16 @@
-* layout selection view
-* setup selection view so it all works dynamically.
+* make the edit links work on list view
+* Add a progress bar
+* Show total time at the start
+* Make blips / timer run when tab is in the background.
 * make the workflow builder work
-* view not found
+* view not found (404) page
+* Add in some testing
+* make intervals nest so I can repeat intervals, eg (burst, SS, burst, SS, burst) x 4 or nest in the BCI warmup.
+* allow for adding intervals as mins *and* seconds
+* Can we calc HR zones / power for Steady state / climbing repeat etc?
+
+* trigger a lap on the Garmin : https://developer.garmin.com/connect-iq/api-docs/
+
 ===
 
 import / export (JSON)

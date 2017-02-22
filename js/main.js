@@ -1,32 +1,7 @@
 /* global mml*/
 (function() {
     'use strict';
-    var intervals = [
-            {action: "Warmup", time: 14, unit: "minutes"},
-            {action: "GET READY! Bring RPM to 90, HR to 159", time: 60, unit: "seconds"},
-            {action: "Steady State (90 rpm, HR 159 - 162)", time: 3, unit: "minutes"},
-            {action: "Climbing Repeat (90 rpm, HR 164 - 167)", time: 2, unit: "minutes"},
-            {action: "Steady State (90 rpm, HR 159 - 162)", time: 3, unit: "minutes"},
-            {action: "Climbing Repeat (90 rpm, HR 164 - 167) ", time: 2, unit: "minutes"},
-            {action: "Recover", time: 4, unit: "minutes"},
-            {action: "Steady State (90 rpm, HR 159 - 162)", time: 3, unit: "minutes"},
-            {action: "Climbing Repeat (90 rpm, HR 164 - 167)", time: 2, unit: "minutes"},
-            {action: "Steady State (90 rpm, HR 159 - 162)", time: 3, unit: "minutes"},
-            {action: "Climbing Repeat (90 rpm, HR 164 - 167)", time: 2, unit: "minutes"},
-            {action: "Recover", time: 4, unit: "minutes"},
-            {action: "Steady State (90 rpm, HR 159 - 162)", time: 3, unit: "minutes"},
-            {action: "Climbing Repeat (90 rpm, HR 164 - 167)", time: 2, unit: "minutes"},
-            {action: "Steady State (90 rpm, HR 159 - 162)", time: 3, unit: "minutes"},
-            {action: "Climbing Repeat (90 rpm, HR 164 - 167)", time: 2, unit: "minutes"},
-            {action: "Recover", time: 4, unit: "minutes"},
-            {action: "Steady State (90 rpm, HR 159 - 162)", time: 3, unit: "minutes"},
-            {action: "Climbing Repeat (90 rpm, HR 164 - 167)", time: 2, unit: "minutes"},
-            {action: "Steady State (90 rpm, HR 159 - 162)", time: 3, unit: "minutes"},
-            {action: "Climbing Repeat (90 rpm, HR 164 - 167)", time: 2, unit: "minutes"},
-            {action: "Recover", time: 4, unit: "minutes"},
-            {action: "cooldown ", time: 10, unit: "minutes"},
-        ],
-        workouts = [
+    var workouts = [
             {
                 "id": "over-unders",
                 "title": "Over Unders",
@@ -261,8 +236,7 @@
             ]),
         },
         state = {
-            intervals: intervals,
-            workouts: workouts
+            workouts: new mml.utilities.enumerable(workouts)
         },
         factory = new mml.Factory(config, state);
 

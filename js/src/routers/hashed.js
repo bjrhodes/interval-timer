@@ -9,7 +9,7 @@ mml.routers.Hashed = function(window, knownRoutes) {
 
     var hashChanged = function() {
         var hash = window.location.hash.substr(1);
-        var route = matcher(hash, current.id);
+        var route = matcher.findRoute(hash, current.id);
         if (route) {
             transitionTo(route, current);
             current = route;
@@ -25,6 +25,9 @@ mml.routers.Hashed = function(window, knownRoutes) {
         },
         route: function(to) {
             window.location.hash = '#' + to;
+        },
+        parameters: function() {
+            return matcher.parameters(window.location.hash.substr(1));
         }
     };
 };

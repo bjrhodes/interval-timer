@@ -1,6 +1,11 @@
 var mml = mml || {};
 mml.routers = mml.routers || {};
 
+/**
+ * @todo need to set a listener on the location change or something.
+ *
+ * Been so long, I don't remember...
+ */
 mml.routers.Plain = function(window, knownRoutes) {
     'use strict';
     var current,
@@ -8,7 +13,7 @@ mml.routers.Plain = function(window, knownRoutes) {
         matcher = mml.routers.Matcher(knownRoutes);
 
     var route = function(to) {
-        var route = matcher(to.id, current.id);
+        var route = matcher.findRoute(to.id, current.id);
         if (route) {
             transitionTo(route.id, current);
             current = route.id;
@@ -20,6 +25,9 @@ mml.routers.Plain = function(window, knownRoutes) {
             transitionTo = transition;
             route('');
         },
-        route: route
+        route: route,
+        parameters: function() {
+            return matcher.parameters();
+        }
     };
 };

@@ -13,11 +13,20 @@ mml.routers.Matcher = function(knownRoutes) {
      */
     knownRoutes = knownRoutes.sortBy('hash').reverse();
 
-    return function(requestedRoute, currentId) {
+    function findRoute(requestedRoute, currentId) {
         var route = knownRoutes.searchRegexBy('hash', requestedRoute);
         if (route && route.id !== currentId) {
             return route;
         }
         return false;
+    }
+
+    function parameters(str) {
+        return typeof(str) === 'string'  ? str.split('/') : [];
+    }
+
+    return {
+        findRoute: findRoute,
+        parameters: parameters
     };
 };
