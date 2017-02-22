@@ -31,7 +31,6 @@ mml.utilities.format = function() {
      */
     function durationAsClock(seconds) {
         var times = splitDurations(seconds);
-        console.log(times);
         return times.hours + ':' + zeropad(times.minutes) + ':' + zeropad(times.seconds);
     }
 
