@@ -1,6 +1,10 @@
 var mml = mml || {};
 mml.views = mml.views || {};
-
+/**
+ * @todo this class has got a bit big. I'd like to make this the view controller,
+ * simply despatching to sub modules.
+ *
+ */
 mml.views.timer = function (el, state, reportError, factory) {
     'use strict';
 
@@ -9,7 +13,7 @@ mml.views.timer = function (el, state, reportError, factory) {
         format = factory.format(),
         classy = factory.classy(),
         router = factory.router(),
-        tools = factory.tools(),
+        workoutStore = factory.store('workout'),
         intervals = [],
         timerRunning = false,
         els = {
@@ -57,7 +61,6 @@ mml.views.timer = function (el, state, reportError, factory) {
     }
 
     /**
-     * @todo this feels a bit wrong here. It's not really view stuff. Where could it go?
      *
      * @return {array} [description]
      */
@@ -68,9 +71,8 @@ mml.views.timer = function (el, state, reportError, factory) {
         if (params.length < 2) {
             return [];
         }
-
-        workout = state.workouts.searchBy('id', params[1]);
-        return tools.clone(workout.intervals);
+        workout = workoutStore.getWorkout(params[1]);
+        return workout.intervals || [];
     }
 
     function countdownComplete() {

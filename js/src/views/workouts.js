@@ -8,7 +8,7 @@ mml.views.workouts = function (el, state, errorReporter, factory) {
     var Mustache = factory.mustache(),
         itemTemplate = '<li class="workout-list__workout clearfix"><h4 class="workout-list__title">{{ title }}</h4><div class="workout-list__actions"><a href="{{ startTarget }}" class="btn workout__start">start</a><a href="{{ editTarget }}" class="btn workout__edit">edit</a></div><p class="workout-list__duration">{{ duration }}</p></li>',
         format = factory.format(),
-        tools = factory.tools();
+        workoutStore = factory.store('workout');
 
     function totalDuration(intervals) {
         var seconds;
@@ -22,7 +22,7 @@ mml.views.workouts = function (el, state, errorReporter, factory) {
     }
 
     function loadWorkouts() {
-        workouts = tools.clone(state.workouts);
+        workouts = workoutStore.getWorkouts();
         if (!(workouts instanceof Array)) {
             workouts = [];
         }

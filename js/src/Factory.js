@@ -41,6 +41,14 @@ mml.Factory = function(config, state, document) {
         return new mml.views[route.view](getEl(route.id), state, errorReporter.reporter, self);
     };
 
+    function store(storeName) {
+        return new mml.stores[storeName](state, self);
+    };
+
+    function enumerable(arr) {
+        return new mml.utilities.enumerable(arr);
+    };
+
     function controller() {
         return new mml.AppController(self);
     };
@@ -49,12 +57,14 @@ mml.Factory = function(config, state, document) {
         view:       view,
         controller: controller,
         router:     router,
+        store:      store,
+        enumerable: enumerable,
         classy:     function() { return classy; },
         countdown:  function() { return countdown; },
         beep:       function() { return beep; },
         format:     function() { return format; },
         tools:      function() { return tools; },
-        mustache:   function() { return Mustache; }
+        mustache:   function() { return Mustache; },
     }
 
     // need to wrangle this a little so we can inject self into builders.
