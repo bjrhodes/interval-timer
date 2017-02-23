@@ -25,6 +25,9 @@ mml.views.timer = function (el, state, reportError, factory) {
         };
 
     function setupInterval(now, next) {
+        if (!now || typeof(now.time) === 'undefined') {
+            return;
+        }
         els.time.innerHTML = format.durationAsClock(format.timeInSeconds(now.time, now.unit));
         els.action.innerHTML = now.action;
 
@@ -57,6 +60,9 @@ mml.views.timer = function (el, state, reportError, factory) {
     }
 
     function initTimer(interval) {
+        if (!interval || typeof(interval.time) === 'undefined') {
+            return;
+        }
         countdown.init(format.timeInSeconds(interval.time, interval.unit), countdownComplete, countdownUpdated);
     }
 
