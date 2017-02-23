@@ -69,7 +69,7 @@ mml.views.timer = function (el, state, reportError, factory) {
             return [];
         }
 
-        workout = state.workouts.extractBy('id', params[1]);
+        workout = state.workouts.searchBy('id', params[1]);
         return tools.clone(workout.intervals);
     }
 
