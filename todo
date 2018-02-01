@@ -1,3 +1,5 @@
+* Make the timer work in the background
+* Make the timer stop the computer from sleeping
 * make the edit links work on list view
 * Add a progress bar
 * Show total time at the start
