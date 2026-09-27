@@ -7,6 +7,7 @@ mml.views.workouts = function (el, state, errorReporter, factory) {
     var workouts;
     var tools = factory.tools(),
         format = factory.format(),
+        url = factory.url(),
         workoutStore = factory.store('workout');
 
     function totalDuration(intervals) {
@@ -26,8 +27,8 @@ mml.views.workouts = function (el, state, errorReporter, factory) {
             workouts = [];
         }
         workouts.forEach(function(workout) {
-            workout.editTarget = "/#editworkout/" + workout.id;
-            workout.startTarget = "/#timer/" + workout.id;
+            workout.editTarget = url.route("editworkout/" + workout.id);
+            workout.startTarget = url.route("timer/" + workout.id);
             workout.duration = totalDuration(workout.intervals);
         });
         return workouts;

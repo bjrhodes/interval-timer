@@ -7,6 +7,8 @@
     <title></title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Set by the GitHub Pages build; when empty the base path is detected from the URL. -->
+    <meta name="base-path" content="">
 
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <!-- Place favicon.ico in the root directory -->
@@ -23,9 +25,9 @@
 
     <nav class="main-nav">
         <ul class="main-nav__list">
-            <li class="main-nav__item"><a class="main-nav__link" href="#">View all</a></li>
-            <li class="main-nav__item"><a class="main-nav__link" href="#editworkout">Example edit</a></li>
-            <li class="main-nav__item"><a class="main-nav__link" href="#timer">Example Timer</a></li>
+            <li class="main-nav__item"><a class="main-nav__link" href="#" data-route="">View all</a></li>
+            <li class="main-nav__item"><a class="main-nav__link" href="#editworkout" data-route="editworkout">Example edit</a></li>
+            <li class="main-nav__item"><a class="main-nav__link" href="#timer" data-route="timer">Example Timer</a></li>
         </ul>
     </nav>
 
@@ -116,6 +118,7 @@
     <script src="js/src/routers/hashed.js"></script>
     <script src="js/src/routers/plain.js"></script>
     <script src="js/src/routers/matcher.js"></script>
+    <script src="js/src/routers/url.js"></script>
     <script src="js/src/utilities/beep.js"></script>
     <script src="js/src/utilities/classy.js"></script>
     <script src="js/src/utilities/countdown.js"></script>

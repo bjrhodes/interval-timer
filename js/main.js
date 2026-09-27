@@ -1,7 +1,9 @@
 /* global mml*/
 (function() {
     'use strict';
-    var config = {
+    var basePathMeta = document.querySelector('meta[name="base-path"]'),
+        config = {
+            basePath : basePathMeta ? basePathMeta.getAttribute('content') : '',
             routes : new mml.utilities.enumerable([
                 {hash: '',            view: 'workouts',    id: 'workouts',    description: 'View all workouts'},
                 {hash: /^timer(\/.*)?/,       view: 'timer',       id: 'timer',       description: 'The workout timer'},

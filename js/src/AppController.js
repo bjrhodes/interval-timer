@@ -16,6 +16,7 @@ mml.AppController = function(factory) {
 
     return {
         run: function() {
+            factory.url().bindLinks();
             router.init(transition);
         }
     };

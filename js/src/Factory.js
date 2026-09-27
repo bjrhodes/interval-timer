@@ -4,7 +4,7 @@ var mml = mml || {};
 mml.Factory = function(config, state, document) {
     'use strict';
 
-    var self, beep, classy, countdown, debounce, format, errorReporter, tools, cached = {
+    var self, beep, classy, countdown, debounce, format, errorReporter, tools, url, cached = {
         views : {}
     };
 
@@ -18,6 +18,7 @@ mml.Factory = function(config, state, document) {
     errorReporter = new mml.utilities.ErrorReporter(window);
     format    = new mml.utilities.format(window);
     tools     = mml.utilities.tools;
+    url       = new mml.routers.Url(window, config.basePath);
 
     // just hate this clunky syntax...
     function getEl(id) {
@@ -63,6 +64,7 @@ mml.Factory = function(config, state, document) {
         beep:       function() { return beep; },
         format:     function() { return format; },
         tools:      function() { return tools; },
+        url:        function() { return url; },
     }
 
     // need to wrangle this a little so we can inject self into builders.
