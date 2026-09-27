@@ -5,8 +5,7 @@ mml.views.workouts = function (el, state, errorReporter, factory) {
     'use strict';
 
     var workouts;
-    var Mustache = factory.mustache(),
-        itemTemplate = '<li class="workout-list__workout clearfix"><h4 class="workout-list__title">{{ title }}</h4><div class="workout-list__actions"><a href="{{ startTarget }}" class="btn workout__start">start</a><a href="{{ editTarget }}" class="btn workout__edit">edit</a></div><p class="workout-list__duration">{{ duration }}</p></li>',
+    var tools = factory.tools(),
         format = factory.format(),
         workoutStore = factory.store('workout');
 
@@ -34,6 +33,18 @@ mml.views.workouts = function (el, state, errorReporter, factory) {
         return workouts;
     }
 
+    function renderItem(workout) {
+        var e = tools.escapeHtml;
+        return '<li class="workout-list__workout clearfix">' +
+            '<h4 class="workout-list__title">' + e(workout.title) + '</h4>' +
+            '<div class="workout-list__actions">' +
+                '<a href="' + e(workout.startTarget) + '" class="btn workout__start">start</a>' +
+                '<a href="' + e(workout.editTarget) + '" class="btn workout__edit">edit</a>' +
+            '</div>' +
+            '<p class="workout-list__duration">' + e(workout.duration) + '</p>' +
+        '</li>';
+    }
+
     function teardown() {
         el.style.display = '';
     }
@@ -42,7 +53,7 @@ mml.views.workouts = function (el, state, errorReporter, factory) {
             html = '';
         workouts = loadWorkouts();
         workouts.forEach(function(workout) {
-            html += Mustache.render(itemTemplate, workout);
+            html += renderItem(workout);
         });
         el.innerHTML = '<ul class="workout-list">' + html + '</ul>';
         el.style.display = 'block';

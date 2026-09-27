@@ -1,4 +1,3 @@
-/* global Mustache */
 
 var mml = mml || {};
 
@@ -64,7 +63,6 @@ mml.Factory = function(config, state, document) {
         beep:       function() { return beep; },
         format:     function() { return format; },
         tools:      function() { return tools; },
-        mustache:   function() { return Mustache; },
     }
 
     // need to wrangle this a little so we can inject self into builders.

@@ -22,10 +22,9 @@ jobs:
 
       - name: Stage site files
         run: |
-          mkdir -p _site/node_modules/mustache
+          mkdir -p _site
           cp -r index.html 404.html css js img *.png favicon.ico \
                 browserconfig.xml crossdomain.xml humans.txt robots.txt _site/
-          cp node_modules/mustache/mustache.min.js _site/node_modules/mustache/
 
       - uses: actions/configure-pages@v5
 

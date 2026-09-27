@@ -1,132 +1,135 @@
 <!doctype html>
 <html class="no-js" lang="">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="x-ua-compatible" content="ie=edge">
-        <title></title>
-        <meta name="description" content="">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <link rel="apple-touch-icon" href="apple-touch-icon.png">
-        <!-- Place favicon.ico in the root directory -->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title></title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <link rel="stylesheet" href="css/normalize.css">
-        <link rel="stylesheet" href="css/main.css">
-        <link rel="stylesheet" href="css/layout.css">
-    </head>
-    <body>
-        <!--[if lt IE 8]>
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <!-- Place favicon.ico in the root directory -->
+
+    <link rel="stylesheet" href="css/normalize.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/layout.css">
+</head>
+
+<body>
+    <!--[if lt IE 8]>
             <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
         <![endif]-->
 
-        <nav class="main-nav">
-            <ul class="main-nav__list">
-                <li class="main-nav__item"><a class="main-nav__link" href="#">View all</a></li>
-                <li class="main-nav__item"><a class="main-nav__link" href="#editworkout">Example edit</a></li>
-                <li class="main-nav__item"><a class="main-nav__link" href="#timer">Example Timer</a></li>
+    <nav class="main-nav">
+        <ul class="main-nav__list">
+            <li class="main-nav__item"><a class="main-nav__link" href="#">View all</a></li>
+            <li class="main-nav__item"><a class="main-nav__link" href="#editworkout">Example edit</a></li>
+            <li class="main-nav__item"><a class="main-nav__link" href="#timer">Example Timer</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+
+        <section id="workouts">
+            <ul class="workout-list">
+                <li>Loading workouts...</li>
             </ul>
-        </nav>
+            <div class="workout-list__actions">
+                <a href="" class="btn workouts__add">Create new Workout</a>
+            </div>
+        </section>
 
-        <div class="container">
+        <section id="timer" class="interval-timer">
+            <div class="current-interval">
+                <div class="current-interval__timer">30s</div>
+                <div class="current-interval__action">Interval action</div>
+                <div class="interval-timer__status interval-timer__status--paused"></div>
+            </div>
+            <div class="next-interval">
+                <div><span class="muted">Up next:</span> <span class="next-interval__action">Next action</span></div>
+                <div class="next-interval__time">(1:00)</div>
+            </div>
+        </section>
 
-            <section id="workouts">
-                <ul class="workout-list">
-                    <li>Loading workouts...</li>
-                </ul>
-                <div class="workout-list__actions">
-                    <a href="" class="btn workouts__add">Create new Workout</a>
+        <section id="edit-workout">
+            <input type="text" class="input edit-workout__input" id="workout-name" name="workout-name"
+                placeholder="Workout name">
+            <ol class="interval-list">
+                <li class="interval-list__interval">
+                    <h4 class="interval-list__action">Interval action</h4>
+                    <p class="interval-list__time">30s</p>
+                    <div class="drag-handle drag-handle--list">≡</div>
+                </li>
+                <li class="interval-list__interval">
+                    <h4 class="interval-list__action">Rest</h4>
+                    <p class="interval-list__time">30s</p>
+                    <div class="drag-handle drag-handle--list">≡</div>
+                </li>
+                <li class="interval-list__interval">
+                    <h4 class="interval-list__action">Interval action</h4>
+                    <p class="interval-list__time">30s</p>
+                    <div class="drag-handle drag-handle--list">≡</div>
+                </li>
+                <li class="interval-list__interval">
+                    <h4 class="interval-list__action">Interval action</h4>
+                    <p class="interval-list__time">30s</p>
+                    <div class="drag-handle drag-handle--list">≡</div>
+                </li>
+                <li class="interval-list__interval">
+                    <h4 class="interval-list__action">Rest</h4>
+                    <p class="interval-list__time">30s</p>
+                    <div class="drag-handle drag-handle--list">≡</div>
+                </li>
+                <li class="interval-list__interval">
+                    <h4 class="interval-list__action">Interval action</h4>
+                    <p class="interval-list__time">30s</p>
+                    <div class="drag-handle drag-handle--list">≡</div>
+                </li>
+            </ol>
+            <div class="interval-list__actions clearfix">
+                <h4 class="interval-list__actions__title">Add a new interval</h4>
+                <label class="block-label" for="new-interval-name">Interval title</label>
+                <input type="text" class="input" id="new-interval-name" placeholder="Go hard or go home">
+
+                <label class="block-label" for="new-interval-duration">Interval duration (numbers only)</label>
+                <div class="interval-list__actions-details">
+                    <input type="text" class="input" id="new-interval-duration" placeholder="30">
                 </div>
-            </section>
-
-            <section id="timer" class="interval-timer">
-                <div class="current-interval">
-                    <div class="current-interval__timer">30s</div>
-                    <div class="current-interval__action">Interval action</div>
-                    <div class="interval-timer__status interval-timer__status--paused"></div>
-                </div>
-                <div class="next-interval">
-                    <div><span class="muted">Up next:</span> <span class="next-interval__action">Next action</span></div>
-                    <div class="next-interval__time">(1:00)</div>
-                </div>
-            </section>
-
-            <section id="edit-workout">
-                <input type="text" class="input edit-workout__input" id="workout-name" name="workout-name" placeholder="Workout name">
-                <ol class="interval-list">
-                    <li class="interval-list__interval">
-                        <h4 class="interval-list__action">Interval action</h4>
-                        <p class="interval-list__time">30s</p>
-                        <div class="drag-handle drag-handle--list">≡</div>
-                    </li>
-                    <li class="interval-list__interval">
-                        <h4 class="interval-list__action">Rest</h4>
-                        <p class="interval-list__time">30s</p>
-                        <div class="drag-handle drag-handle--list">≡</div>
-                    </li>
-                    <li class="interval-list__interval">
-                        <h4 class="interval-list__action">Interval action</h4>
-                        <p class="interval-list__time">30s</p>
-                        <div class="drag-handle drag-handle--list">≡</div>
-                    </li>
-                    <li class="interval-list__interval">
-                        <h4 class="interval-list__action">Interval action</h4>
-                        <p class="interval-list__time">30s</p>
-                        <div class="drag-handle drag-handle--list">≡</div>
-                    </li>
-                    <li class="interval-list__interval">
-                        <h4 class="interval-list__action">Rest</h4>
-                        <p class="interval-list__time">30s</p>
-                        <div class="drag-handle drag-handle--list">≡</div>
-                    </li>
-                    <li class="interval-list__interval">
-                        <h4 class="interval-list__action">Interval action</h4>
-                        <p class="interval-list__time">30s</p>
-                        <div class="drag-handle drag-handle--list">≡</div>
-                    </li>
-                </ol>
-                <div class="interval-list__actions clearfix">
-                    <h4 class="interval-list__actions__title">Add a new interval</h4>
-                    <label class="block-label" for="new-interval-name">Interval title</label>
-                    <input type="text" class="input" id="new-interval-name" placeholder="Go hard or go home">
-
-                    <label class="block-label" for="new-interval-duration">Interval duration (numbers only)</label>
-                    <div class="interval-list__actions-details">
-                        <input type="text" class="input" id="new-interval-duration" placeholder="30">
-                    </div>
-                    <div class="interval-list__actions-units">
-                        <select name="" id="new-interval-units" class="select">
-                            <option value="seconds">seconds</option>
-                            <option value="minutes">minutes</option>
-                            <option value="hours">hours (...really?)</option>
-                        </select>
-                    </div>
-
-                    <a href="" class="btn interval__add">Add interval</a>
+                <div class="interval-list__actions-units">
+                    <select name="" id="new-interval-units" class="select">
+                        <option value="seconds">seconds</option>
+                        <option value="minutes">minutes</option>
+                        <option value="hours">hours (...really?)</option>
+                    </select>
                 </div>
 
-            </section>
-        </div>
+                <a href="" class="btn interval__add">Add interval</a>
+            </div>
 
-        <script src="js/polyfills.js"></script>
-        <script src="node_modules/mustache/mustache.min.js"></script>
+        </section>
+    </div>
 
-        <script src="js/src/stores/workout-store.js"></script>
-        <script src="js/src/routers/hashed.js"></script>
-        <script src="js/src/routers/plain.js"></script>
-        <script src="js/src/routers/matcher.js"></script>
-        <script src="js/src/utilities/Beep.js"></script>
-        <script src="js/src/utilities/Classy.js"></script>
-        <script src="js/src/utilities/Countdown.js"></script>
-        <script src="js/src/utilities/Debounce.js"></script>
-        <script src="js/src/utilities/enumerable.js"></script>
-        <script src="js/src/utilities/ErrorReporter.js"></script>
-        <script src="js/src/utilities/format.js"></script>
-        <script src="js/src/utilities/tools.js"></script>
-        <script src="js/src/views/editworkout.js"></script>
-        <script src="js/src/views/timer.js"></script>
-        <script src="js/src/views/workouts.js"></script>
-        <script src="js/src/AppController.js"></script>
-        <script src="js/src/Factory.js"></script>
-        <script src="js/main.js"></script>
-    </body>
+    <script src="js/polyfills.js"></script>
+
+    <script src="js/src/stores/workout-store.js"></script>
+    <script src="js/src/routers/hashed.js"></script>
+    <script src="js/src/routers/plain.js"></script>
+    <script src="js/src/routers/matcher.js"></script>
+    <script src="js/src/utilities/beep.js"></script>
+    <script src="js/src/utilities/Classy.js"></script>
+    <script src="js/src/utilities/Countdown.js"></script>
+    <script src="js/src/utilities/Debounce.js"></script>
+    <script src="js/src/utilities/enumerable.js"></script>
+    <script src="js/src/utilities/ErrorReporter.js"></script>
+    <script src="js/src/utilities/format.js"></script>
+    <script src="js/src/utilities/tools.js"></script>
+    <script src="js/src/views/editworkout.js"></script>
+    <script src="js/src/views/timer.js"></script>
+    <script src="js/src/views/workouts.js"></script>
+    <script src="js/src/AppController.js"></script>
+    <script src="js/src/Factory.js"></script>
+    <script src="js/main.js"></script>
+</body>
+
 </html>
