@@ -1,14 +1,14 @@
-var mml = mml || {};
+window.mml = window.mml || {};
 mml.utilities = mml.utilities || {};
 
 /* The vaguest name... */
 mml.utilities.tools = {
-    clone: function(thing) {
+    clone: (thing) => {
         // @todo add try / catch
         return JSON.parse(JSON.stringify(thing));
     },
-    escapeHtml: function(str) {
-        var entities = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '/': '&#x2F;' };
-        return String(str).replace(/[&<>"'\/]/g, function(c) { return entities[c]; });
+    escapeHtml: (str) => {
+        const entities = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '/': '&#x2F;' };
+        return String(str).replace(/[&<>"'\/]/g, (c) => entities[c]);
     }
 };

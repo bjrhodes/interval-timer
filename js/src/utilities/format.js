@@ -1,42 +1,38 @@
-var mml = mml || {};
+window.mml = window.mml || {};
 mml.utilities = mml.utilities || {};
 
-mml.utilities.format = function() {
+mml.utilities.format = () => {
 
-    function splitDurations(seconds) {
-        var minutes, hours;
-
-        minutes = Math.floor(seconds / 60); // count how many minutes
-        seconds = seconds - (minutes * 60); // subtract the minutes from the total seconds
-        hours = Math.floor(minutes / 60); // count how many hours
-        minutes = minutes - (hours * 60); // subtract the hours from the total minutes
+    const splitDurations = (seconds) => {
+        const totalMinutes = Math.floor(seconds / 60); // count how many minutes
+        const hours = Math.floor(totalMinutes / 60); // count how many hours
 
         return {
             hours: hours,
-            minutes: minutes,
-            seconds: seconds,
-        }
-    }
+            minutes: totalMinutes - (hours * 60), // subtract the hours from the total minutes
+            seconds: seconds - (totalMinutes * 60), // subtract the minutes from the total seconds
+        };
+    };
 
-    function zeropad(num) {
-        var str = '' + num;
+    const zeropad = (num) => {
+        const str = '' + num;
         if (num === 0) {
             return '00';
         }
         return (str.length === 1) ? '0' + str : str;
-    }
+    };
 
     /**
      * Takes a number of seconds as an integer and returns a formatted duration string
      */
-    function durationAsClock(seconds) {
-        var times = splitDurations(seconds);
+    const durationAsClock = (seconds) => {
+        const times = splitDurations(seconds);
         return times.hours + ':' + zeropad(times.minutes) + ':' + zeropad(times.seconds);
-    }
+    };
 
-    function durationAsWords(seconds) {
-        var times = splitDurations(seconds),
-            str = '';
+    const durationAsWords = (seconds) => {
+        const times = splitDurations(seconds);
+        let str = '';
 
         if (times.hours) {
             str += times.hours + ' hour' + (times.hours === 1 ? '' : 's');
@@ -51,7 +47,7 @@ mml.utilities.format = function() {
         }
 
         return str;
-    }
+    };
 
     /**
      * Converts a number of units into seconds
@@ -59,7 +55,7 @@ mml.utilities.format = function() {
      * @param  {string} units one of hours, minutes or seconds
      * @return integer time in seconds
      */
-    function timeInSeconds(time, units) {
+    const timeInSeconds = (time, units) => {
         switch (units) {
             case 'hours':
                 time = time * 60;
@@ -69,11 +65,11 @@ mml.utilities.format = function() {
         }
 
         return time;
-    }
+    };
 
     return {
         timeInSeconds: timeInSeconds,
         durationAsClock: durationAsClock,
         durationAsWords: durationAsWords,
-    }
+    };
 };

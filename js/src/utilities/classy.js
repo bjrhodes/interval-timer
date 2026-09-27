@@ -1,47 +1,42 @@
-var mml = mml || {};
+window.mml = window.mml || {};
 mml.utilities = mml.utilities || {};
 
-mml.utilities.Classy = function(document) {
+mml.utilities.Classy = (document) => {
     'use strict';
-    var self,
-        classList = {
-            add : function(el, myClass) {
+    const classList = {
+            add : (el, myClass) => {
                 if (self.has(el, myClass)) {
                     return;
                 }
               el.classList.add(myClass);
             },
-            remove : function(el, myClass) {
+            remove : (el, myClass) => {
                 while (self.has(el, myClass)) {
                     el.classList.remove(myClass);
                 }
             },
-            has : function(el, myClass) {
+            has : (el, myClass) => {
                 return el.classList.contains(myClass);
             }
         },
         className = {
-            add : function(el, myClass) {
+            add : (el, myClass) => {
                 if (self.has(el, myClass)) {
                     return;
                 }
               el.className += ' ' + myClass;
             },
-            remove : function(el, myClass) {
+            remove : (el, myClass) => {
                 while (self.has(el, myClass)) {
                     el.className = el.className.replace(myClass, '');
                 }
             },
-            has : function(el, myClass) {
+            has : (el, myClass) => {
                 return (el.className.indexOf(myClass) !== -1);
             }
         };
 
-    if (typeof(document.body.classList) !== 'undefined') {
-        self = classList;
-    } else {
-        self = className;
-    }
+    const self = (typeof(document.body.classList) !== 'undefined') ? classList : className;
 
     return self;
 };

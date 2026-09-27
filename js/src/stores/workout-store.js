@@ -1,11 +1,10 @@
-var mml = mml || {};
+window.mml = window.mml || {};
 mml.stores = mml.stores || {};
 
-mml.stores.workout = function(state, factory) {
-    var workouts,
-        tools = factory.tools();
+mml.stores.workout = (state, factory) => {
+    const tools = factory.tools();
 
-    function fetchWorkouts() {
+    const fetchWorkouts = () => {
         return [
             {
                 "id": "over-unders-3-2-3-2",
@@ -541,14 +540,14 @@ mml.stores.workout = function(state, factory) {
         ];
     };
 
-    workouts = factory.enumerable(fetchWorkouts());
+    const workouts = factory.enumerable(fetchWorkouts());
 
     return {
-        getWorkouts: function() {
+        getWorkouts: () => {
             return tools.clone(workouts);
         },
-        getWorkout: function(id) {
-            workout = workouts.searchBy('id', id);
+        getWorkout: (id) => {
+            const workout = workouts.searchBy('id', id);
             return tools.clone(workout);
         }
     };

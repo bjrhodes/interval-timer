@@ -1,21 +1,21 @@
-var mml = mml || {};
+window.mml = window.mml || {};
 
-mml.AppController = function(factory) {
+mml.AppController = (factory) => {
     'use strict';
 
-    var view;
-    var router = factory.router();
+    let view;
+    const router = factory.router();
 
-    function transition(to) {
+    const transition = (to) => {
         if (view) {
             view.teardown();
         }
         view = factory.view(to);
         view.setup();
-    }
+    };
 
     return {
-        run: function() {
+        run: () => {
             factory.url().bindLinks();
             router.init(transition);
         }

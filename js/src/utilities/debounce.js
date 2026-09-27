@@ -1,25 +1,25 @@
-var mml = mml || {};
+window.mml = window.mml || {};
 mml.utilities = mml.utilities || {};
 
 /**
  * This slows firing to at most once every interval.
  *
  */
-mml.utilities.Debounce = function(window) {
+mml.utilities.Debounce = (window) => {
     'use strict';
-    var running = [];
+    const running = [];
 
-    return function(fn, time, identifier) {
-        var findTimer = function(id) {
+    return (fn, time, identifier) => {
+        const findTimer = (id) => {
             return (id === identifier);
         };
-        var removeTimer = function(id, index) {
+        const removeTimer = (id, index) => {
             if (id === identifier) {
                 running.splice(index, 1);
                 return true;
             }
         };
-        var runAndClear = function() {
+        const runAndClear = () => {
             fn();
             running.some(removeTimer);
         };

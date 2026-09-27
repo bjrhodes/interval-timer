@@ -1,12 +1,12 @@
-var mml = mml || {};
+window.mml = window.mml || {};
 mml.utilities = mml.utilities || {};
 
-mml.utilities.enumerable = function(arr) {
+mml.utilities.enumerable = (arr) => {
     'use strict';
-    var searchBy = function(key, value) {
-        var found = false;
+    const searchBy = (key, value) => {
+        let found = false;
 
-        var search = function(hashmap) {
+        const search = (hashmap) => {
             if (hashmap[key] === value) {
                 found = hashmap;
                 return true;
@@ -17,11 +17,11 @@ mml.utilities.enumerable = function(arr) {
 
         return found;
     };
-    var searchRegexBy = function(key, value) {
-        var found = false;
+    const searchRegexBy = (key, value) => {
+        let found = false;
 
-        var search = function(hashmap) {
-            var regex = new RegExp(hashmap[key]);
+        const search = (hashmap) => {
+            const regex = new RegExp(hashmap[key]);
             if (regex.exec(value)) {
                 found = hashmap;
                 return true;
@@ -32,10 +32,10 @@ mml.utilities.enumerable = function(arr) {
 
         return found;
     };
-    var extractBy = function(key, value) {
-        var found = false;
+    const extractBy = (key, value) => {
+        let found = false;
 
-        var search = function(hashmap, index) {
+        const search = (hashmap, index) => {
             if (hashmap[key] === value) {
                 found = hashmap;
                 arr.splice(index, 1);
@@ -48,12 +48,12 @@ mml.utilities.enumerable = function(arr) {
         return found;
     };
 
-    var sortBy = function(key) {
-        arr = arr.sort(function(a, b) {
+    const sortBy = (key) => {
+        arr = arr.sort((a, b) => {
             return a[key] < b[key] ? -1 : (a[key] > b[key] ? 1 : 0);
         });
         return arr;
-    }
+    };
 
     arr.extractBy = extractBy;
     arr.searchBy  = searchBy;

@@ -1,15 +1,15 @@
-var mml = mml || {};
+window.mml = window.mml || {};
 mml.views = mml.views || {};
 
-mml.views.editWorkout = function (el) {
+mml.views.editWorkout = (el) => {
     'use strict';
 
-    function teardown() {
+    const teardown = () => {
         el.style.display = '';
-    }
-    function setup() {
+    };
+    const setup = () => {
         el.style.display = 'block';
-    }
+    };
 
     return {
         teardown: teardown,

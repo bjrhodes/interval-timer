@@ -1,7 +1,7 @@
-var mml = mml || {};
+window.mml = window.mml || {};
 mml.routers = mml.routers || {};
 
-mml.routers.Matcher = function(knownRoutes) {
+mml.routers.Matcher = (knownRoutes) => {
     'use strict';
 
     /*
@@ -13,17 +13,17 @@ mml.routers.Matcher = function(knownRoutes) {
      */
     knownRoutes = knownRoutes.sortBy('hash').reverse();
 
-    function findRoute(requestedRoute, currentId) {
-        var route = knownRoutes.searchRegexBy('hash', requestedRoute);
+    const findRoute = (requestedRoute, currentId) => {
+        const route = knownRoutes.searchRegexBy('hash', requestedRoute);
         if (route && route.id !== currentId) {
             return route;
         }
         return false;
-    }
+    };
 
-    function parameters(str) {
+    const parameters = (str) => {
         return typeof(str) === 'string'  ? str.split('/') : [];
-    }
+    };
 
     return {
         findRoute: findRoute,

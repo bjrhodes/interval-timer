@@ -1,11 +1,11 @@
-var mml = mml ||{};
+window.mml = window.mml || {};
 mml.utilities = mml.utilities || {};
 
-mml.utilities.ErrorReporter = function() {
+mml.utilities.ErrorReporter = () => {
 
     return {
-        reporter: function(message) {
+        reporter: (message) => {
             console.log(message);
         }
-    }
+    };
 };

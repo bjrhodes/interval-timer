@@ -1,26 +1,26 @@
-var mml = mml || {};
+window.mml = window.mml || {};
 mml.utilities = mml.utilities || {};
 
-mml.utilities.Countdown = function() {
+mml.utilities.Countdown = () => {
 
-    var complete,
+    let complete,
         update,
         clearCurrent,
         targetTime,
         msRemaining, // this one is here to allow for more accurate pauses
         currentCount = 0;
 
-    function tickDown() {
+    const tickDown = () => {
         currentCount--;
         msRemaining = 1000;
         targetTime = targetTime + msRemaining;
         if (typeof(update) === 'function') {
             update(currentCount);
         }
-    }
+    };
 
     // Checks if we've hit our target, and if so ticks down a second
-    function runTimer() {
+    const runTimer = () => {
         if (targetTime <= window.performance.now()) {
             tickDown();
             if (currentCount === 0) {
@@ -30,21 +30,20 @@ mml.utilities.Countdown = function() {
         }
 
         clearCurrent = window.requestAnimationFrame(runTimer);
-    }
+    };
 
-    function pause() {
-        var now;
+    const pause = () => {
         if (clearCurrent) {
             window.cancelAnimationFrame(clearCurrent);
-            now = window.performance.now();
+            const now = window.performance.now();
             msRemaining = targetTime - now;
         }
-    }
+    };
 
     // Sets a target of 1 second into the future and starts a timer. Using requestAnimationFrame for better accuracy than
     // the easier-to-read setTimeout.
     return {
-        init: function (countTo, callback, notify) {
+        init: (countTo, callback, notify) => {
             pause();
             if (countTo <= 0) {
                 return callback();
@@ -55,13 +54,13 @@ mml.utilities.Countdown = function() {
             currentCount = countTo;
             msRemaining = 1000;
         },
-        start: function () {
-            var now = window.performance.now();
+        start: () => {
+            const now = window.performance.now();
             targetTime = now + msRemaining;
             if (currentCount > 0) {
                 runTimer();
             }
         },
         pause: pause
-    }
+    };
 };

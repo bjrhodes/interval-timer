@@ -1,41 +1,40 @@
-var mml = mml || {};
+window.mml = window.mml || {};
 mml.views = mml.views || {};
 
-mml.views.workouts = function (el, state, errorReporter, factory) {
+mml.views.workouts = (el, state, errorReporter, factory) => {
     'use strict';
 
-    var workouts;
-    var tools = factory.tools(),
+    let workouts;
+    const tools = factory.tools(),
         format = factory.format(),
         url = factory.url(),
         workoutStore = factory.store('workout');
 
-    function totalDuration(intervals) {
-        var seconds;
+    const totalDuration = (intervals) => {
         if (!(workouts instanceof Array)) {
             return 'Unknown duration';
         }
-        seconds = intervals.reduce(function(total, interval) {
+        const seconds = intervals.reduce((total, interval) => {
             return isNaN(1 + interval.time) ? total : total + format.timeInSeconds(interval.time, interval.unit);
         }, 0);
         return format.durationAsWords(seconds);
-    }
+    };
 
-    function loadWorkouts() {
+    const loadWorkouts = () => {
         workouts = workoutStore.getWorkouts();
         if (!(workouts instanceof Array)) {
             workouts = [];
         }
-        workouts.forEach(function(workout) {
+        workouts.forEach((workout) => {
             workout.editTarget = url.route("editworkout/" + workout.id);
             workout.startTarget = url.route("timer/" + workout.id);
             workout.duration = totalDuration(workout.intervals);
         });
         return workouts;
-    }
+    };
 
-    function renderItem(workout) {
-        var e = tools.escapeHtml;
+    const renderItem = (workout) => {
+        const e = tools.escapeHtml;
         return '<li class="workout-list__workout clearfix">' +
             '<h4 class="workout-list__title">' + e(workout.title) + '</h4>' +
             '<div class="workout-list__actions">' +
@@ -44,21 +43,20 @@ mml.views.workouts = function (el, state, errorReporter, factory) {
             '</div>' +
             '<p class="workout-list__duration">' + e(workout.duration) + '</p>' +
         '</li>';
-    }
+    };
 
-    function teardown() {
+    const teardown = () => {
         el.style.display = '';
-    }
-    function setup() {
-        var workouts,
-            html = '';
-        workouts = loadWorkouts();
-        workouts.forEach(function(workout) {
+    };
+    const setup = () => {
+        let html = '';
+        const workouts = loadWorkouts();
+        workouts.forEach((workout) => {
             html += renderItem(workout);
         });
         el.innerHTML = '<ul class="workout-list">' + html + '</ul>';
         el.style.display = 'block';
-    }
+    };
 
     return {
         teardown: teardown,

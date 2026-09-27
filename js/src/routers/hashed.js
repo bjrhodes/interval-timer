@@ -1,15 +1,15 @@
-var mml = mml || {};
+window.mml = window.mml || {};
 mml.routers = mml.routers || {};
 
-mml.routers.Hashed = function(window, knownRoutes) {
+mml.routers.Hashed = (window, knownRoutes) => {
     'use strict';
-    var current = '';
-    var transitionTo,
-        matcher = mml.routers.Matcher(knownRoutes);
+    let current = '';
+    let transitionTo;
+    const matcher = mml.routers.Matcher(knownRoutes);
 
-    var hashChanged = function() {
-        var hash = window.location.hash.substr(1);
-        var route = matcher.findRoute(hash, current.id);
+    const hashChanged = () => {
+        const hash = window.location.hash.substr(1);
+        const route = matcher.findRoute(hash, current.id);
         if (route) {
             transitionTo(route, current);
             current = route;
@@ -19,14 +19,14 @@ mml.routers.Hashed = function(window, knownRoutes) {
     window.onhashchange = hashChanged;
 
     return {
-        init: function(transition) {
+        init: (transition) => {
             transitionTo = transition;
             hashChanged();
         },
-        route: function(to) {
+        route: (to) => {
             window.location.hash = '#' + to;
         },
-        parameters: function() {
+        parameters: () => {
             return matcher.parameters(window.location.hash.substr(1));
         }
     };

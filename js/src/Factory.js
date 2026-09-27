@@ -1,72 +1,72 @@
 
-var mml = mml || {};
+window.mml = window.mml || {};
 
-mml.Factory = function(config, state, document) {
+mml.Factory = (config, state, document) => {
     'use strict';
 
-    var self, beep, classy, countdown, debounce, format, errorReporter, tools, url, cached = {
+    const cached = {
         views : {}
     };
 
     // allow this to be injected for mocking purposes.
     document = document || window.document;
 
-    beep      = new mml.utilities.Beep();
-    classy    = new mml.utilities.Classy(document);
-    countdown = new mml.utilities.Countdown();
-    debounce  = new mml.utilities.Debounce(window);
-    errorReporter = new mml.utilities.ErrorReporter(window);
-    format    = new mml.utilities.format(window);
-    tools     = mml.utilities.tools;
-    url       = new mml.routers.Url(window, config.basePath);
+    const beep      = mml.utilities.Beep();
+    const classy    = mml.utilities.Classy(document);
+    const countdown = mml.utilities.Countdown();
+    const debounce  = mml.utilities.Debounce(window);
+    const errorReporter = mml.utilities.ErrorReporter(window);
+    const format    = mml.utilities.format(window);
+    const tools     = mml.utilities.tools;
+    const url       = mml.routers.Url(window, config.basePath);
 
     // just hate this clunky syntax...
-    function getEl(id) {
+    const getEl = (id) => {
         return document.getElementById(id);
     };
 
-    function router() {
+    const router = () => {
         if (!cached.router) {
             if ('onhashchange' in document.body) {
-                cached.router = new mml.routers.Hashed(window, config.routes);
+                cached.router = mml.routers.Hashed(window, config.routes);
             } else {
-                cached.router = new mml.routers.Plain(window, config.routes);
+                cached.router = mml.routers.Plain(window, config.routes);
             }
         }
 
         return cached.router;
-    }
-
-    function view(route) {
-        return new mml.views[route.view](getEl(route.id), state, errorReporter.reporter, self);
     };
 
-    function store(storeName) {
-        return new mml.stores[storeName](state, self);
+    const view = (route) => {
+        return mml.views[route.view](getEl(route.id), state, errorReporter.reporter, self);
     };
 
-    function enumerable(arr) {
-        return new mml.utilities.enumerable(arr);
+    const store = (storeName) => {
+        return mml.stores[storeName](state, self);
     };
 
-    function controller() {
-        return new mml.AppController(self);
+    const enumerable = (arr) => {
+        return mml.utilities.enumerable(arr);
     };
 
-    self = {
+    const controller = () => {
+        return mml.AppController(self);
+    };
+
+    const self = {
         view:       view,
         controller: controller,
         router:     router,
         store:      store,
         enumerable: enumerable,
-        classy:     function() { return classy; },
-        countdown:  function() { return countdown; },
-        beep:       function() { return beep; },
-        format:     function() { return format; },
-        tools:      function() { return tools; },
-        url:        function() { return url; },
-    }
+        classy:     () => classy,
+        countdown:  () => countdown,
+        beep:       () => beep,
+        format:     () => format,
+        tools:      () => tools,
+        url:        () => url,
+    };
 
     // need to wrangle this a little so we can inject self into builders.
     return self;
-}
+};
