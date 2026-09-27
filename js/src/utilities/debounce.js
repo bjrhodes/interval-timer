@@ -1,12 +1,8 @@
-window.mml = window.mml || {};
-mml.utilities = mml.utilities || {};
-
 /**
  * This slows firing to at most once every interval.
  *
  */
-mml.utilities.Debounce = (window) => {
-    'use strict';
+export const Debounce = (window) => {
     const running = [];
 
     return (fn, time, identifier) => {

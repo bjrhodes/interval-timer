@@ -1,9 +1,4 @@
-window.mml = window.mml || {};
-mml.routers = mml.routers || {};
-
-mml.routers.Matcher = (knownRoutes) => {
-    'use strict';
-
+export const Matcher = (knownRoutes) => {
     /*
      * This is probably going to bite me in the ass, and should maybe be docs instead.
      *

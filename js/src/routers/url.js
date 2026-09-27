@@ -1,13 +1,8 @@
-window.mml = window.mml || {};
-mml.routers = mml.routers || {};
-
 /**
  * Builds links to routes, prefixed with the folder the app is deployed in,
  * e.g. "/" locally or "/interval-timer/" on GitHub Pages.
  */
-mml.routers.Url = (window, basePath) => {
-    'use strict';
-
+export const Url = (window, basePath) => {
     // strip any file name (e.g. index.html) so we're left with the folder.
     basePath = basePath || window.location.pathname.replace(/[^\/]*$/, '');
 

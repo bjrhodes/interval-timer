@@ -1,9 +1,25 @@
+import { AppController } from './AppController.js';
+import { Hashed } from './routers/hashed.js';
+import { Plain } from './routers/plain.js';
+import { Url } from './routers/url.js';
+import { workout } from './stores/workout-store.js';
+import { Beep } from './utilities/beep.js';
+import { Classy } from './utilities/classy.js';
+import { Countdown } from './utilities/countdown.js';
+import { Debounce } from './utilities/debounce.js';
+import { enumerable as makeEnumerable } from './utilities/enumerable.js';
+import { ErrorReporter } from './utilities/ErrorReporter.js';
+import { format as makeFormat } from './utilities/format.js';
+import { tools } from './utilities/tools.js';
+import { editWorkout } from './views/editworkout.js';
+import { timer } from './views/timer.js';
+import { workouts } from './views/workouts.js';
 
-window.mml = window.mml || {};
+// routes and stores refer to these by name.
+const views = { editWorkout, timer, workouts };
+const stores = { workout };
 
-mml.Factory = (config, state, document) => {
-    'use strict';
-
+export const Factory = (config, state, document) => {
     const cached = {
         views : {}
     };
@@ -11,14 +27,13 @@ mml.Factory = (config, state, document) => {
     // allow this to be injected for mocking purposes.
     document = document || window.document;
 
-    const beep      = mml.utilities.Beep();
-    const classy    = mml.utilities.Classy(document);
-    const countdown = mml.utilities.Countdown();
-    const debounce  = mml.utilities.Debounce(window);
-    const errorReporter = mml.utilities.ErrorReporter(window);
-    const format    = mml.utilities.format(window);
-    const tools     = mml.utilities.tools;
-    const url       = mml.routers.Url(window, config.basePath);
+    const beep      = Beep();
+    const classy    = Classy(document);
+    const countdown = Countdown();
+    const debounce  = Debounce(window);
+    const errorReporter = ErrorReporter(window);
+    const format    = makeFormat(window);
+    const url       = Url(window, config.basePath);
 
     // just hate this clunky syntax...
     const getEl = (id) => {
@@ -28,9 +43,9 @@ mml.Factory = (config, state, document) => {
     const router = () => {
         if (!cached.router) {
             if ('onhashchange' in document.body) {
-                cached.router = mml.routers.Hashed(window, config.routes);
+                cached.router = Hashed(window, config.routes);
             } else {
-                cached.router = mml.routers.Plain(window, config.routes);
+                cached.router = Plain(window, config.routes);
             }
         }
 
@@ -38,19 +53,19 @@ mml.Factory = (config, state, document) => {
     };
 
     const view = (route) => {
-        return mml.views[route.view](getEl(route.id), state, errorReporter.reporter, self);
+        return views[route.view](getEl(route.id), state, errorReporter.reporter, self);
     };
 
     const store = (storeName) => {
-        return mml.stores[storeName](state, self);
+        return stores[storeName](state, self);
     };
 
     const enumerable = (arr) => {
-        return mml.utilities.enumerable(arr);
+        return makeEnumerable(arr);
     };
 
     const controller = () => {
-        return mml.AppController(self);
+        return AppController(self);
     };
 
     const self = {

@@ -1,8 +1,4 @@
-window.mml = window.mml || {};
-
-mml.AppController = (factory) => {
-    'use strict';
-
+export const AppController = (factory) => {
     let view;
     const router = factory.router();
 

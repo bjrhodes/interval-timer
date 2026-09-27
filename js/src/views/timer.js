@@ -1,13 +1,9 @@
-window.mml = window.mml || {};
-mml.views = mml.views || {};
 /**
  * @todo this class has got a bit big. I'd like to make this the view controller,
  * simply despatching to sub modules.
  *
  */
-mml.views.timer = (el, state, reportError, factory) => {
-    'use strict';
-
+export const timer = (el, state, reportError, factory) => {
     const countdown = factory.countdown(),
         beep = factory.beep(),
         format = factory.format(),

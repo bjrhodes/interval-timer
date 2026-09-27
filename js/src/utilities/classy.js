@@ -1,8 +1,4 @@
-window.mml = window.mml || {};
-mml.utilities = mml.utilities || {};
-
-mml.utilities.Classy = (document) => {
-    'use strict';
+export const Classy = (document) => {
     const classList = {
             add : (el, myClass) => {
                 if (self.has(el, myClass)) {

@@ -1,8 +1,5 @@
-window.mml = window.mml || {};
-mml.utilities = mml.utilities || {};
-
 /* The vaguest name... */
-mml.utilities.tools = {
+export const tools = {
     clone: (thing) => {
         // @todo add try / catch
         return JSON.parse(JSON.stringify(thing));

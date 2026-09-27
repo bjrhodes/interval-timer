@@ -1,7 +1,4 @@
-window.mml = window.mml || {};
-mml.stores = mml.stores || {};
-
-mml.stores.workout = (state, factory) => {
+export const workout = (state, factory) => {
     const tools = factory.tools();
 
     const fetchWorkouts = () => {

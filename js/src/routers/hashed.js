@@ -1,11 +1,9 @@
-window.mml = window.mml || {};
-mml.routers = mml.routers || {};
+import { Matcher } from './matcher.js';
 
-mml.routers.Hashed = (window, knownRoutes) => {
-    'use strict';
+export const Hashed = (window, knownRoutes) => {
     let current = '';
     let transitionTo;
-    const matcher = mml.routers.Matcher(knownRoutes);
+    const matcher = Matcher(knownRoutes);
 
     const hashChanged = () => {
         const hash = window.location.hash.substr(1);

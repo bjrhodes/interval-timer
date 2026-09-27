@@ -1,8 +1,4 @@
-window.mml = window.mml || {};
-mml.utilities = mml.utilities || {};
-
-mml.utilities.enumerable = (arr) => {
-    'use strict';
+export const enumerable = (arr) => {
     const searchBy = (key, value) => {
         let found = false;
 

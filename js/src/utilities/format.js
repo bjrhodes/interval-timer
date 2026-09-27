@@ -1,7 +1,4 @@
-window.mml = window.mml || {};
-mml.utilities = mml.utilities || {};
-
-mml.utilities.format = () => {
+export const format = () => {
 
     const splitDurations = (seconds) => {
         const totalMinutes = Math.floor(seconds / 60); // count how many minutes

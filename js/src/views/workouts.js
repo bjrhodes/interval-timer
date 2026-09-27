@@ -1,9 +1,4 @@
-window.mml = window.mml || {};
-mml.views = mml.views || {};
-
-mml.views.workouts = (el, state, errorReporter, factory) => {
-    'use strict';
-
+export const workouts = (el, state, errorReporter, factory) => {
     let workouts;
     const tools = factory.tools(),
         format = factory.format(),

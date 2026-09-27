@@ -1,9 +1,4 @@
-window.mml = window.mml || {};
-mml.views = mml.views || {};
-
-mml.views.editWorkout = (el) => {
-    'use strict';
-
+export const editWorkout = (el) => {
     const teardown = () => {
         el.style.display = '';
     };

@@ -1,16 +1,14 @@
-window.mml = window.mml || {};
-mml.routers = mml.routers || {};
+import { Matcher } from './matcher.js';
 
 /**
  * @todo need to set a listener on the location change or something.
  *
  * Been so long, I don't remember...
  */
-mml.routers.Plain = (window, knownRoutes) => {
-    'use strict';
+export const Plain = (window, knownRoutes) => {
     let current,
         transitionTo;
-    const matcher = mml.routers.Matcher(knownRoutes);
+    const matcher = Matcher(knownRoutes);
 
     const route = (to) => {
         const route = matcher.findRoute(to.id, current.id);

@@ -1,7 +1,4 @@
-window.mml = window.mml || {};
-mml.utilities = mml.utilities || {};
-
-mml.utilities.Countdown = () => {
+export const Countdown = () => {
 
     let complete,
         update,

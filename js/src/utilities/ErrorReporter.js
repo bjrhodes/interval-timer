@@ -1,7 +1,4 @@
-window.mml = window.mml || {};
-mml.utilities = mml.utilities || {};
-
-mml.utilities.ErrorReporter = () => {
+export const ErrorReporter = () => {
 
     return {
         reporter: (message) => {
