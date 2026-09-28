@@ -57,38 +57,11 @@
         <section id="edit-workout">
             <input type="text" class="input edit-workout__input" id="workout-name" name="workout-name"
                 placeholder="Workout name">
-            <ol class="interval-list">
-                <li class="interval-list__interval">
-                    <h4 class="interval-list__action">Interval action</h4>
-                    <p class="interval-list__time">30s</p>
-                    <div class="drag-handle drag-handle--list">≡</div>
-                </li>
-                <li class="interval-list__interval">
-                    <h4 class="interval-list__action">Rest</h4>
-                    <p class="interval-list__time">30s</p>
-                    <div class="drag-handle drag-handle--list">≡</div>
-                </li>
-                <li class="interval-list__interval">
-                    <h4 class="interval-list__action">Interval action</h4>
-                    <p class="interval-list__time">30s</p>
-                    <div class="drag-handle drag-handle--list">≡</div>
-                </li>
-                <li class="interval-list__interval">
-                    <h4 class="interval-list__action">Interval action</h4>
-                    <p class="interval-list__time">30s</p>
-                    <div class="drag-handle drag-handle--list">≡</div>
-                </li>
-                <li class="interval-list__interval">
-                    <h4 class="interval-list__action">Rest</h4>
-                    <p class="interval-list__time">30s</p>
-                    <div class="drag-handle drag-handle--list">≡</div>
-                </li>
-                <li class="interval-list__interval">
-                    <h4 class="interval-list__action">Interval action</h4>
-                    <p class="interval-list__time">30s</p>
-                    <div class="drag-handle drag-handle--list">≡</div>
-                </li>
-            </ol>
+            <fieldset class="effort-mode-switcher">
+                <legend class="effort-mode-switcher__legend">Effort mode</legend>
+                <div class="effort-mode" role="radiogroup"></div>
+            </fieldset>
+            <ol class="interval-list"></ol>
             <div class="interval-list__actions clearfix">
                 <h4 class="interval-list__actions__title">Add a new interval</h4>
                 <label class="block-label" for="new-interval-name">Interval title</label>
@@ -105,6 +78,7 @@
                         <option value="hours">hours (...really?)</option>
                     </select>
                 </div>
+                <div class="interval-list__actions-effort"></div>
 
                 <a href="" class="btn interval__add">Add interval</a>
             </div>

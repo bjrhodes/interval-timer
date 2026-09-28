@@ -7,6 +7,7 @@ import { Beep } from './utilities/beep.js';
 import { Classy } from './utilities/classy.js';
 import { Countdown } from './utilities/countdown.js';
 import { Debounce } from './utilities/debounce.js';
+import { effort } from './utilities/effort.js';
 import { enumerable as makeEnumerable } from './utilities/enumerable.js';
 import { ErrorReporter } from './utilities/ErrorReporter.js';
 import { format as makeFormat } from './utilities/format.js';
@@ -77,6 +78,7 @@ export const Factory = (config, state, document) => {
         classy:     () => classy,
         countdown:  () => countdown,
         beep:       () => beep,
+        effort:     () => effort,
         format:     () => format,
         tools:      () => tools,
         url:        () => url,

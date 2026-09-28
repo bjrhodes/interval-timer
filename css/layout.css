@@ -151,6 +151,79 @@ section { display: none; }
     width: 50%;
     float: right;
 }
+.interval-list__actions-effort {
+    clear: both;
+    margin-bottom: 0.5em;
+}
+
+.effort-mode-switcher {
+    border: none;
+    margin: 1em 0;
+    padding: 0;
+}
+.effort-mode-switcher__legend {
+    padding: 0;
+    margin-bottom: 0.3em;
+}
+.effort-mode {
+    display: flex;
+    flex-wrap: wrap;
+    border: 1px solid black;
+    border-radius: 0.5em;
+    overflow: hidden;
+}
+.effort-mode__option {
+    flex: 1 1 auto;
+    position: relative;
+    text-align: center;
+    cursor: pointer;
+}
+.effort-mode__option + .effort-mode__option {
+    border-left: 1px solid black;
+}
+.effort-mode__input {
+    position: absolute;
+    opacity: 0;
+}
+.effort-mode__label {
+    display: block;
+    padding: 0.5em 1em;
+}
+.effort-mode__option:hover .effort-mode__label {
+    background: #eee;
+}
+.effort-mode__input:checked + .effort-mode__label {
+    background: black;
+    color: white;
+}
+.effort-mode__input:focus-visible + .effort-mode__label {
+    outline: 2px solid #b3d4fc;
+    outline-offset: -2px;
+}
+
+.interval-list__effort {
+    margin-top: 0.5em;
+}
+.interval-list__effort-label {
+    display: block;
+    font-size: 0.9em;
+}
+.interval-list__effort .select {
+    margin-top: 0.2em;
+}
+.effort-numeric {
+    display: flex;
+    align-items: center;
+    max-width: 12em;
+}
+.effort-numeric .input {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+}
+.effort-numeric__unit {
+    padding-left: 0.5em;
+}
 
 .workout-list {
     list-style: none;
