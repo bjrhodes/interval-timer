@@ -1,6 +1,8 @@
+const TICK_MS = 250;
+
 /**
  * Drives a workout session: the session decides what state the workout is in, this view feeds it clicks, key
- * presses and animation frames, then turns each change of state into DOM updates and beeps.
+ * presses, animation frames and timer ticks, then turns each change of state into DOM updates and beeps.
  */
 export const timer = (el, state, reportError, factory) => {
     const session = factory.session(),
@@ -26,6 +28,7 @@ export const timer = (el, state, reportError, factory) => {
     let details,
         workout,
         frame = null,
+        ticker = null,
         shownSeconds = null;
 
     const loadWorkout = () => {
@@ -101,15 +104,29 @@ export const timer = (el, state, reportError, factory) => {
         }
     };
 
+    const tick = () => {
+        dispatch({type: 'TICK', now: window.performance.now()});
+    };
+
     const loop = () => {
         frame = null;
-        dispatch({type: 'TICK', now: window.performance.now()});
+        tick();
+    };
+
+    // browsers stop animation frames in hidden tabs, so a slow interval keeps the clock (and its beeps) going there.
+    const startLoop = () => {
+        frame = frame === null ? window.requestAnimationFrame(loop) : frame;
+        ticker = ticker === null ? window.setInterval(tick, TICK_MS) : ticker;
     };
 
     const stopLoop = () => {
         if (frame !== null) {
             window.cancelAnimationFrame(frame);
             frame = null;
+        }
+        if (ticker !== null) {
+            window.clearInterval(ticker);
+            ticker = null;
         }
     };
 
@@ -119,7 +136,7 @@ export const timer = (el, state, reportError, factory) => {
         // the state only changes between intervals, but the clock moves on every tick.
         render(prev, event.now);
         if (workout.status === 'running') {
-            frame = frame === null ? window.requestAnimationFrame(loop) : frame;
+            startLoop();
             wakeLock.acquire();
         } else {
             stopLoop();

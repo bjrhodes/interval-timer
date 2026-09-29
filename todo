@@ -1,4 +1,3 @@
-- Make blips / timer run when tab is in the background.
 - make the workflow builder work
 - view not found (404) page
 - Add in some testing
@@ -17,3 +16,13 @@ import / export (JSON)
 ===
 
 Save to cloud
+
+# Ideas for the future
+
+Beeps can be slow when background as requestAnimationFrame does not run and setInterval is throttled in the background. This can be resolved in a few ways:
+
+- Future: schedule beeps ahead with Web Audio (audio clock keeps running when hidden)
+- Future: iOS - canvas.captureStream() video in picture-in-picture to keep a timer + sound going outside Safari
+- Future: AirPlay to Apple TV needs a real media URL (e.g. HLS); screen mirroring works today with no changes
+
+We might consider the video methods as a feature-add, so that users can stream to TV.

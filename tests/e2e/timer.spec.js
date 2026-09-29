@@ -138,6 +138,31 @@ test('keeps the screen awake only while running', async ({ page }) => {
     await expect.poll(locks).toEqual([{ type: 'screen', released: true }]);
 });
 
+test('keeps counting and beeping when animation frames stop, as in a background tab', async ({ page }) => {
+    // the fake clock brings its own animation frames, so install it before switching them off.
+    await page.clock.install();
+    await page.addInitScript(() => {
+        window.requestAnimationFrame = () => 0;
+        window.beeps = 0;
+        HTMLMediaElement.prototype.play = function () {
+            window.beeps += 1;
+            return Promise.resolve();
+        };
+    });
+    await page.goto('/#timer/threshold-ladder');
+    const t = timer(page);
+
+    await t.section.click();
+    await page.clock.fastForward('13:50');
+    await expect(t.time).toHaveText('0:00:10');
+    const before = await page.evaluate(() => window.beeps);
+
+    await page.clock.runFor('00:10');
+    await expect(t.action).toHaveText('GET READY! Bring RPM to 90, HR to 159');
+    // a countdown beep for each of the last five seconds, then two for the new interval.
+    await expect.poll(() => page.evaluate(() => window.beeps)).toBe(before + 7);
+});
+
 test('says so when the workout does not exist', async ({ page }) => {
     await page.goto('/#timer/no-such-workout');
 
