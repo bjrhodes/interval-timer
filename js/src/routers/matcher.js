@@ -8,12 +8,8 @@ export const Matcher = (knownRoutes) => {
      */
     const routes = knownRoutes.sortBy('hash').reverse();
 
-    const findRoute = (requestedRoute, currentId) => {
-        const route = routes.searchRegexBy('hash', requestedRoute);
-        if (route && route.id !== currentId) {
-            return route;
-        }
-        return false;
+    const findRoute = (requestedRoute) => {
+        return routes.searchRegexBy('hash', requestedRoute);
     };
 
     const parameters = (str) => {

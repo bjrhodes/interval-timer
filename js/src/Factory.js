@@ -22,7 +22,8 @@ const stores = { workout };
 
 export const Factory = (config, state, document) => {
     const cached = {
-        views : {}
+        views : {},
+        stores : {}
     };
 
     // allow this to be injected for mocking purposes.
@@ -57,8 +58,13 @@ export const Factory = (config, state, document) => {
         return views[route.view](getEl(route.id), state, errorReporter.reporter, self);
     };
 
+    // one instance per store, so every view sees the same data.
     const store = (storeName) => {
-        return stores[storeName](state, self);
+        if (!cached.stores[storeName]) {
+            cached.stores[storeName] = stores[storeName](state, self);
+        }
+
+        return cached.stores[storeName];
     };
 
     const enumerable = (arr) => {

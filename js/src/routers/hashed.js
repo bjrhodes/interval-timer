@@ -8,7 +8,7 @@ export const Hashed = (window, knownRoutes) => {
         init: (transitionTo) => {
             const hashChanged = () => {
                 const hash = window.location.hash.substr(1);
-                const route = matcher.findRoute(hash, current.id);
+                const route = matcher.findRoute(hash);
                 if (route) {
                     transitionTo(route, current);
                     current = route;

@@ -109,6 +109,7 @@ export const timer = (el, state, reportError, factory) => {
     };
 
     const teardown = () => {
+        countdown.pause();
         el.style.display = '';
         removeHandlers();
     };

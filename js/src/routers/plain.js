@@ -7,14 +7,16 @@ import { Matcher } from './matcher.js';
  */
 export const Plain = (window, knownRoutes) => {
     let current,
+        currentPath = '',
         transitionTo;
     const matcher = Matcher(knownRoutes);
 
     const route = (to) => {
-        const route = matcher.findRoute(to.id, current.id);
-        if (route) {
-            transitionTo(route.id, current);
-            current = route.id;
+        const found = matcher.findRoute(to);
+        if (found) {
+            transitionTo(found, current);
+            current = found;
+            currentPath = to;
         }
     };
 
@@ -25,7 +27,7 @@ export const Plain = (window, knownRoutes) => {
         },
         route: route,
         parameters: () => {
-            return matcher.parameters();
+            return matcher.parameters(currentPath);
         }
     };
 };

@@ -15,20 +15,20 @@ export const Classy = (document) => {
                 return el.classList.contains(myClass);
             }
         },
+        // work on whole class names, so "btn" doesn't match "btn-primary".
+        classNames = (el) => el.className.split(/\s+/).filter((name) => name),
         className = {
             add : (el, myClass) => {
                 if (self.has(el, myClass)) {
                     return;
                 }
-              el.className += ' ' + myClass;
+                el.className = classNames(el).concat(myClass).join(' ');
             },
             remove : (el, myClass) => {
-                while (self.has(el, myClass)) {
-                    el.className = el.className.replace(myClass, '');
-                }
+                el.className = classNames(el).filter((name) => name !== myClass).join(' ');
             },
             has : (el, myClass) => {
-                return (el.className.indexOf(myClass) !== -1);
+                return classNames(el).includes(myClass);
             }
         };
 
