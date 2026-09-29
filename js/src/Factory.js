@@ -10,13 +10,15 @@ import { effort } from './utilities/effort.js';
 import { enumerable as makeEnumerable } from './utilities/enumerable.js';
 import { ErrorReporter } from './utilities/ErrorReporter.js';
 import { format as makeFormat } from './utilities/format.js';
+import { summarise } from './utilities/summary.js';
 import { tools } from './utilities/tools.js';
 import { editWorkout } from './views/editworkout.js';
+import { home } from './views/home.js';
 import { timer } from './views/timer.js';
 import { workouts } from './views/workouts.js';
 
 // routes and stores refer to these by name.
-const views = { editWorkout, timer, workouts };
+const views = { editWorkout, home, timer, workouts };
 const stores = { workout };
 
 export const Factory = (config, state, document) => {
@@ -82,9 +84,11 @@ export const Factory = (config, state, document) => {
         session:    () => session,
         beep:       () => beep,
         effort:     () => effort,
+        summarise:  () => summarise,
         format:     () => format,
         tools:      () => tools,
         url:        () => url,
+        document:   () => document,
     };
 
     // need to wrangle this a little so we can inject self into builders.

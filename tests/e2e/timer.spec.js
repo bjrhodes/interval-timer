@@ -6,6 +6,10 @@ const timer = (page) => ({
     action: page.locator('.current-interval__action'),
     nextAction: page.locator('.next-interval__action'),
     status: page.locator('.interval-timer__status'),
+    effort: page.locator('.current-interval__effort'),
+    nextTime: page.locator('.next-interval__time'),
+    remaining: page.locator('.timer__remaining'),
+    progress: page.getByRole('progressbar'),
 });
 
 test.describe('timer', () => {
@@ -55,11 +59,58 @@ test.describe('timer', () => {
         await t.section.click();
         await page.clock.fastForward('02:00:00');
 
-        await expect(t.time).toHaveText('FIN');
-        await expect(t.nextAction).toHaveText('-');
+        await expect(t.time).toHaveText('Done');
+        await expect(t.action).toHaveText('Workout complete');
+        await expect(t.remaining).toHaveText('0:00:00 left');
 
         await t.section.click();
-        await expect(t.time).toHaveText('FIN');
+        await expect(t.time).toHaveText('Done');
         await expect(t.status).not.toHaveClass(/interval-timer__status--paused/);
     });
+
+    test('shows the workout, its total time and each effort target up front', async ({ page }) => {
+        const t = timer(page);
+
+        await expect(page.locator('.timer__title')).toHaveText('Threshold Ladder');
+        await expect(t.remaining).toHaveText('1:02:00 left');
+        await expect(t.effort).toHaveText('Z2 - Endurance (60-70% max)');
+        await expect(t.nextTime).toHaveText('0:01:00 · Z3 - Tempo (70-80% max)');
+    });
+
+    test('tracks progress through the whole workout', async ({ page }) => {
+        const t = timer(page);
+        await t.section.click();
+        await page.clock.fastForward('31:00');
+
+        await expect(t.remaining).toHaveText('0:31:00 left');
+        await expect(t.progress).toHaveAttribute('aria-valuenow', '50');
+    });
+
+    test('plays and pauses with the space bar', async ({ page }) => {
+        const t = timer(page);
+
+        await page.keyboard.press('Space');
+        await expect(t.status).not.toHaveClass(/interval-timer__status--paused/);
+        await expect(t.status).toHaveAccessibleName('Pause');
+
+        await page.keyboard.press('Space');
+        await expect(t.status).toHaveClass(/interval-timer__status--paused/);
+    });
+
+    test('plays and pauses with the button, toggling once per press', async ({ page }) => {
+        const t = timer(page);
+
+        await t.status.click();
+        await expect(t.status).not.toHaveClass(/interval-timer__status--paused/);
+
+        await t.status.press('Space');
+        await expect(t.status).toHaveClass(/interval-timer__status--paused/);
+    });
+});
+
+test('says so when the workout does not exist', async ({ page }) => {
+    await page.goto('/#timer/no-such-workout');
+
+    await expect(page.locator('.current-interval__action')).toHaveText('Workout not found');
+    await expect(page.locator('.current-interval__timer')).toHaveText('--');
 });

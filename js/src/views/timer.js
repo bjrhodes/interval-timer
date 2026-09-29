@@ -1,33 +1,39 @@
 /**
- * Drives a workout session: the session decides what state the workout is in, this view feeds it clicks and
- * animation frames, then turns each change of state into DOM updates and beeps.
+ * Drives a workout session: the session decides what state the workout is in, this view feeds it clicks, key
+ * presses and animation frames, then turns each change of state into DOM updates and beeps.
  */
 export const timer = (el, state, reportError, factory) => {
     const session = factory.session(),
         beep = factory.beep(),
+        effort = factory.effort(),
         format = factory.format(),
         classy = factory.classy(),
         router = factory.router(),
         workoutStore = factory.store('workout'),
         els = {
+            title: null,
+            remaining: null,
+            progress: null,
+            progressFill: null,
             time: null,
             action: null,
+            effort: null,
             nextAction: null,
             nextTime: null,
             status: null
         };
-    let workout,
+    let details,
+        workout,
         frame = null,
         shownSeconds = null;
 
-    const getIntervals = () => {
+    const loadWorkout = () => {
         const params = router.parameters();
+        return (params.length >= 2 && workoutStore.getWorkout(params[1])) || null;
+    };
 
-        if (params.length < 2) {
-            return [];
-        }
-        const found = workoutStore.getWorkout(params[1]);
-        return found.intervals || [];
+    const describeEffort = (interval) => {
+        return (interval && effort.describe(details && details.effortMode, interval.effort)) || '';
     };
 
     const renderIntervals = () => {
@@ -35,30 +41,45 @@ export const timer = (el, state, reportError, factory) => {
             next = session.next(workout);
 
         if (!now) {
-            els.time.innerHTML = 'FIN';
-            els.action.innerHTML = '-';
-            els.nextAction.innerHTML = '-';
-            els.nextTime.innerHTML = '-';
+            els.time.textContent = details ? 'Done' : '--';
+            els.action.textContent = details ? 'Workout complete' : 'Workout not found';
+            els.effort.textContent = '';
+            els.nextAction.textContent = '-';
+            els.nextTime.textContent = '';
             return;
         }
-        els.action.innerHTML = now.action;
-        els.nextAction.innerHTML = next ? next.action : 'Completed';
-        els.nextTime.innerHTML = next ? '(' + format.durationAsClock(next.seconds) + ')' : '-';
+        els.action.textContent = now.action;
+        els.effort.textContent = describeEffort(now);
+        els.nextAction.textContent = next ? next.action : 'Finish';
+        els.nextTime.textContent = next
+            ? [format.durationAsClock(next.seconds), describeEffort(next)].filter((part) => part).join(' · ')
+            : '';
     };
 
     const renderStatus = () => {
         const paused = workout.status === 'ready' || workout.status === 'paused';
         classy[paused ? 'add' : 'remove'](els.status, 'interval-timer__status--paused');
+        els.status.setAttribute('aria-label', paused ? 'Start' : 'Pause');
+        el.setAttribute('data-status', workout.status);
+    };
+
+    const renderProgress = (now) => {
+        const done = session.progress(workout, now);
+        els.progressFill.style.transform = 'scaleX(' + done + ')';
+        els.progress.setAttribute('aria-valuenow', Math.round(done * 100));
+        els.remaining.textContent = format.durationAsClock(session.remainingSeconds(workout, now)) + ' left';
     };
 
     const renderClock = (now) => {
         if (workout.status === 'finished') {
+            renderProgress(now);
             return false;
         }
         const seconds = session.secondsLeft(workout, now);
         if (seconds !== shownSeconds) {
-            els.time.innerHTML = format.durationAsClock(seconds);
+            els.time.textContent = format.durationAsClock(seconds);
             shownSeconds = seconds;
+            renderProgress(now);
             return true;
         }
         return false;
@@ -103,19 +124,38 @@ export const timer = (el, state, reportError, factory) => {
         }
     };
 
-    const playPause = (e) => {
+    const toggle = () => {
         dispatch({type: workout.status === 'running' ? 'PAUSE' : 'START', now: window.performance.now()});
+    };
+
+    // anywhere on the screen is a play/pause button, except the way out.
+    const clicked = (e) => {
+        if (e.target.closest('a')) {
+            return;
+        }
+        toggle();
+        e.preventDefault();
+    };
+
+    // space toggles too, leaving focused controls to handle it themselves.
+    const keyed = (e) => {
+        if (e.key !== ' ' || e.target.closest('a, button, input, select, textarea')) {
+            return;
+        }
+        toggle();
         e.preventDefault();
     };
 
     const teardown = () => {
         stopLoop();
         el.style.display = '';
-        el.removeEventListener('click', playPause);
+        el.removeEventListener('click', clicked);
+        window.document.removeEventListener('keydown', keyed);
     };
 
     const setup = () => {
-        const intervals = getIntervals();
+        details = loadWorkout();
+        const intervals = details ? details.intervals : [];
 
         if (!intervals || typeof(intervals.forEach) !== 'function') {
             reportError('Timer view could not read intervals.');
@@ -123,18 +163,25 @@ export const timer = (el, state, reportError, factory) => {
         workout = session.create(intervals);
         shownSeconds = null;
 
-        el.style.display = 'block';
+        el.style.display = 'flex';
 
+        els.title = el.querySelector('.timer__title');
+        els.remaining = el.querySelector('.timer__remaining');
+        els.progress = el.querySelector('.timer__progress');
+        els.progressFill = el.querySelector('.timer__progress-fill');
         els.time = el.querySelector('.current-interval__timer');
         els.action = el.querySelector('.current-interval__action');
+        els.effort = el.querySelector('.current-interval__effort');
         els.nextAction = el.querySelector('.next-interval__action');
         els.nextTime = el.querySelector('.next-interval__time');
         els.status = el.querySelector('.interval-timer__status');
 
+        els.title.textContent = details ? details.title : '';
         renderIntervals();
         renderStatus();
         renderClock(0);
-        el.addEventListener('click', playPause);
+        el.addEventListener('click', clicked);
+        window.document.addEventListener('keydown', keyed);
     };
 
     return {

@@ -4,8 +4,9 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title></title>
-    <meta name="description" content="">
+    <title>Interval Timer</title>
+    <meta name="description" content="Run structured interval workouts.">
+    <meta name="theme-color" content="#0f1115">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- Set by the GitHub Pages build; when empty the base path is detected from the URL. -->
     <meta name="base-path" content="">
@@ -23,68 +24,120 @@
             <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
         <![endif]-->
 
-    <nav class="main-nav">
-        <ul class="main-nav__list">
-            <li class="main-nav__item"><a class="main-nav__link" href="#" data-route="">View all</a></li>
-            <li class="main-nav__item"><a class="main-nav__link" href="#editworkout" data-route="editworkout">Example edit</a></li>
-            <li class="main-nav__item"><a class="main-nav__link" href="#timer" data-route="timer">Example Timer</a></li>
-        </ul>
-    </nav>
+    <header class="app-header">
+        <a class="app-header__brand" href="#" data-route="">Interval Timer</a>
+        <nav class="app-nav" aria-label="Main">
+            <a class="app-nav__link" href="#" data-route="" data-nav="home">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8M5 9.5V21h5v-6h4v6h5V9.5"/></svg>
+                <span>Home</span>
+            </a>
+            <a class="app-nav__link" href="#workouts" data-route="workouts" data-nav="workouts">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>
+                <span>Workouts</span>
+            </a>
+        </nav>
+    </header>
 
-    <div class="container">
+    <main class="container">
+
+        <section id="home" class="home">
+            <article class="next-workout">
+                <p class="eyebrow">Next workout</p>
+                <div class="next-workout__body"></div>
+            </article>
+            <div class="panels">
+                <section class="panel home__upcoming">
+                    <h2 class="panel__title">Coming up</h2>
+                    <ol class="upcoming-list"></ol>
+                </section>
+                <section class="panel home__library">
+                    <h2 class="panel__title">Library</h2>
+                    <div class="library-stats"></div>
+                </section>
+            </div>
+        </section>
 
         <section id="workouts">
+            <div class="page-header">
+                <h1 class="page-header__title">Workouts</h1>
+                <a href="#editworkout" data-route="editworkout" class="btn btn--primary workouts__add">New workout</a>
+            </div>
             <ul class="workout-list">
                 <li>Loading workouts...</li>
             </ul>
-            <div class="workout-list__actions">
-                <a href="" class="btn workouts__add">Create new Workout</a>
-            </div>
         </section>
 
-        <section id="timer" class="interval-timer">
-            <div class="current-interval">
-                <div class="current-interval__timer">30s</div>
-                <div class="current-interval__action">Interval action</div>
-                <div class="interval-timer__status interval-timer__status--paused"></div>
+        <section id="edit-workout" class="edit-workout">
+            <div class="page-header">
+                <a href="#workouts" data-route="workouts" class="back-link">
+                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+                    Workouts
+                </a>
+                <a href="" class="btn btn--primary edit-workout__start">Start</a>
             </div>
-            <div class="next-interval">
-                <div><span class="muted">Up next:</span> <span class="next-interval__action">Next action</span></div>
-                <div class="next-interval__time">(1:00)</div>
-            </div>
-        </section>
-
-        <section id="edit-workout">
+            <label class="visuallyhidden" for="workout-name">Workout name</label>
             <input type="text" class="input edit-workout__input" id="workout-name" name="workout-name"
                 placeholder="Workout name">
+            <p class="edit-workout__summary muted"></p>
             <fieldset class="effort-mode-switcher">
                 <legend class="effort-mode-switcher__legend">Effort mode</legend>
                 <div class="effort-mode" role="radiogroup"></div>
             </fieldset>
             <ol class="interval-list"></ol>
-            <div class="interval-list__actions clearfix">
-                <h4 class="interval-list__actions__title">Add a new interval</h4>
-                <label class="block-label" for="new-interval-name">Interval title</label>
-                <input type="text" class="input" id="new-interval-name" placeholder="Go hard or go home">
-
-                <label class="block-label" for="new-interval-duration">Interval duration (numbers only)</label>
-                <div class="interval-list__actions-details">
-                    <input type="text" class="input" id="new-interval-duration" placeholder="30">
+            <div class="panel interval-list__actions">
+                <h2 class="panel__title">Add an interval</h2>
+                <div class="field">
+                    <label class="block-label" for="new-interval-name">Interval title</label>
+                    <input type="text" class="input" id="new-interval-name" placeholder="Go hard or go home">
                 </div>
-                <div class="interval-list__actions-units">
-                    <select name="" id="new-interval-units" class="select">
-                        <option value="seconds">seconds</option>
-                        <option value="minutes">minutes</option>
-                        <option value="hours">hours (...really?)</option>
-                    </select>
+                <div class="field field--row">
+                    <div class="field__grow">
+                        <label class="block-label" for="new-interval-duration">Duration</label>
+                        <input type="number" inputmode="numeric" min="1" class="input" id="new-interval-duration" placeholder="30">
+                    </div>
+                    <div>
+                        <label class="block-label" for="new-interval-units">Units</label>
+                        <select id="new-interval-units" class="input select">
+                            <option value="seconds">seconds</option>
+                            <option value="minutes">minutes</option>
+                            <option value="hours">hours</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="interval-list__actions-effort"></div>
+                <div class="field interval-list__actions-effort"></div>
 
                 <a href="" class="btn interval__add">Add interval</a>
             </div>
-
         </section>
-    </div>
+    </main>
+
+    <section id="timer" class="timer">
+        <header class="timer__bar">
+            <a class="timer__exit" href="#" data-route="" aria-label="Exit workout">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </a>
+            <span class="timer__title"></span>
+            <span class="timer__remaining"></span>
+        </header>
+        <div class="timer__progress" role="progressbar" aria-label="Workout progress" aria-valuemin="0" aria-valuemax="100">
+            <div class="timer__progress-fill"></div>
+        </div>
+        <div class="current-interval">
+            <div class="current-interval__action">Interval action</div>
+            <div class="current-interval__timer">0:00:00</div>
+            <div class="current-interval__effort"></div>
+            <button type="button" class="interval-timer__status interval-timer__status--paused" aria-label="Start">
+                <svg class="icon icon--play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12.5-7.5z"/></svg>
+                <svg class="icon icon--pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg>
+            </button>
+            <p class="timer__hint">Tap anywhere or press space</p>
+        </div>
+        <footer class="next-interval">
+            <span class="next-interval__label">Up next</span>
+            <span class="next-interval__action">Next action</span>
+            <span class="next-interval__time"></span>
+        </footer>
+    </section>
 
     <script type="module" src="js/main.js"></script>
 </body>

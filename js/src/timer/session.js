@@ -20,7 +20,11 @@ const msOf = (interval) => interval.seconds * 1000;
 const create = (intervals) => {
     const playable = (intervals || [])
         .filter((interval) => interval && typeof(interval.time) !== 'undefined')
-        .map((interval) => ({action: interval.action, seconds: timeInSeconds(interval.time, interval.unit)}))
+        .map((interval) => ({
+            action: interval.action,
+            seconds: timeInSeconds(interval.time, interval.unit),
+            effort: interval.effort,
+        }))
         .filter((interval) => interval.seconds > 0);
 
     return {
@@ -81,6 +85,12 @@ const secondsLeft = (state, now) => Math.ceil(remainingMs(state, now) / 1000);
 
 const totalSeconds = (state) => state.intervals.reduce((total, interval) => total + interval.seconds, 0);
 
+// whole seconds left in the workout: the current interval's clock plus every interval still to come.
+const remainingSeconds = (state, now) => {
+    const later = state.intervals.slice(state.index + 1).reduce((total, interval) => total + interval.seconds, 0);
+    return state.status === 'finished' ? 0 : secondsLeft(state, now) + later;
+};
+
 // fraction of the whole workout completed, from 0 to 1.
 const progress = (state, now) => {
     const total = totalSeconds(state) * 1000;
@@ -100,5 +110,6 @@ export const session = {
     next: next,
     secondsLeft: secondsLeft,
     totalSeconds: totalSeconds,
+    remainingSeconds: remainingSeconds,
     progress: progress,
 };

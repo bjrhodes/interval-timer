@@ -33,6 +33,11 @@ describe('session', () => {
             expect(state.intervals).toEqual([{action: 'Real', seconds: 5}]);
         });
 
+        it('carries each interval\'s effort target through', () => {
+            const state = session.create([{action: 'Hard', time: 5, unit: 'seconds', effort: 4}]);
+            expect(session.current(state).effort).toBe(4);
+        });
+
         it('is finished straight away when there is nothing to play', () => {
             expect(session.create([]).status).toBe('finished');
             expect(session.create(undefined).status).toBe('finished');
@@ -102,6 +107,14 @@ describe('session', () => {
     describe('totals', () => {
         it('adds up the whole workout', () => {
             expect(session.totalSeconds(workout())).toBe(90);
+        });
+
+        it('counts down the time left in the whole workout', () => {
+            expect(session.remainingSeconds(workout(), 0)).toBe(90);
+            expect(session.remainingSeconds(run(start(0)), 30500)).toBe(60);
+            expect(session.remainingSeconds(run(start(0), tick(65000)), 65000)).toBe(25);
+            expect(session.remainingSeconds(run(start(0), pause(70000)), 999999)).toBe(20);
+            expect(session.remainingSeconds(run(start(0), tick(90000)), 90000)).toBe(0);
         });
 
         it('reports progress through the whole workout', () => {

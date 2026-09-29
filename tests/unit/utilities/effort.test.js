@@ -64,3 +64,20 @@ describe('effort.parse', () => {
         expect(effort.parse('nope', '11')).toBeNull();
     });
 });
+
+describe('effort.describe', () => {
+    it('uses the level label for scale modes', () => {
+        expect(effort.describe('hrZone', 4)).toBe('Z4 - Threshold (80-90% max)');
+    });
+
+    it('adds the unit for numeric modes', () => {
+        expect(effort.describe('power', 250)).toBe('250 W');
+        expect(effort.describe('heartRate', 0)).toBe('0 bpm');
+    });
+
+    it('returns null when there is no target, or it is off the scale', () => {
+        expect(effort.describe('power', undefined)).toBeNull();
+        expect(effort.describe('power', null)).toBeNull();
+        expect(effort.describe('hrZone', 9)).toBeNull();
+    });
+});

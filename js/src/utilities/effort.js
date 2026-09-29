@@ -76,9 +76,25 @@ const parse = (modeId, raw) => {
     return Math.min(m.max, Math.max(m.min, value));
 };
 
+/**
+ * A short, human label for an effort target, e.g. "Z4 - Threshold (80-90% max)" or "250 W", or null for no target.
+ */
+const describe = (modeId, value) => {
+    const m = mode(modeId);
+    if (value === null || typeof(value) === 'undefined') {
+        return null;
+    }
+    if (m.type === 'scale') {
+        const level = m.levels.find((l) => l.value === value);
+        return level ? level.label : null;
+    }
+    return value + ' ' + m.unit;
+};
+
 export const effort = {
     modes: modes,
     defaultMode: defaultMode,
     mode: mode,
     parse: parse,
+    describe: describe,
 };

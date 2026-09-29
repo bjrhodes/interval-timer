@@ -2,9 +2,13 @@ export const editWorkout = (el, state, reportError, factory) => {
     const tools = factory.tools(),
         effort = factory.effort(),
         router = factory.router(),
+        summarise = factory.summarise(),
+        url = factory.url(),
         workoutStore = factory.store('workout'),
         els = {
             name: null,
+            start: null,
+            summary: null,
             modes: null,
             list: null,
             newName: null,
@@ -55,7 +59,7 @@ export const editWorkout = (el, state, reportError, factory) => {
                 return '<option value="' + level.value + '"' + (level.value === value ? ' selected' : '') + '>' +
                     e(level.label) + '</option>';
             }).join('');
-            return '<select id="' + e(id) + '" class="select effort-input">' +
+            return '<select id="' + e(id) + '" class="input select effort-input">' +
                 '<option value="">No target</option>' + options +
             '</select>';
         }
@@ -72,19 +76,30 @@ export const editWorkout = (el, state, reportError, factory) => {
         const e = tools.escapeHtml;
         const id = 'interval-effort-' + index;
         return '<li class="interval-list__interval" data-index="' + index + '">' +
-            '<h4 class="interval-list__action">' + e(interval.action) + '</h4>' +
-            '<p class="interval-list__time">' + e(interval.time + ' ' + interval.unit) + '</p>' +
+            '<span class="interval-list__number" aria-hidden="true">' + (index + 1) + '</span>' +
+            '<div class="interval-list__details">' +
+                '<h3 class="interval-list__action">' + e(interval.action) + '</h3>' +
+                '<p class="interval-list__time">' + e(interval.time + ' ' + interval.unit) + '</p>' +
+            '</div>' +
             '<div class="interval-list__effort">' +
                 '<label class="interval-list__effort-label" for="' + id + '">' +
                     e(effort.mode(workout.effortMode).label) + '</label>' +
                 renderEffortControl(id, interval.effort) +
             '</div>' +
-            '<div class="drag-handle drag-handle--list">≡</div>' +
         '</li>';
+    };
+
+    // the timer can only play a workout that has been saved with something in it.
+    const renderSummary = () => {
+        const summary = summarise(workout);
+        els.summary.textContent = summary.intervals + ' intervals · ' + summary.duration;
+        els.start.setAttribute('href', url.route('timer/' + workout.id));
+        els.start.hidden = !summary.intervals;
     };
 
     const renderIntervals = () => {
         els.list.innerHTML = workout.intervals.map(renderInterval).join('');
+        renderSummary();
     };
 
     const renderNewEffort = () => {
@@ -198,6 +213,8 @@ export const editWorkout = (el, state, reportError, factory) => {
 
     const setup = () => {
         els.name = el.querySelector('#workout-name');
+        els.start = el.querySelector('.edit-workout__start');
+        els.summary = el.querySelector('.edit-workout__summary');
         els.modes = el.querySelector('.effort-mode');
         els.list = el.querySelector('.interval-list');
         els.newName = el.querySelector('#new-interval-name');
