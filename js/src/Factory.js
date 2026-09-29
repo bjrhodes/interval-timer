@@ -12,6 +12,7 @@ import { ErrorReporter } from './utilities/ErrorReporter.js';
 import { format as makeFormat } from './utilities/format.js';
 import { summarise } from './utilities/summary.js';
 import { tools } from './utilities/tools.js';
+import { WakeLock } from './utilities/wake-lock.js';
 import { editWorkout } from './views/editworkout.js';
 import { home } from './views/home.js';
 import { timer } from './views/timer.js';
@@ -35,6 +36,7 @@ export const Factory = (config, state, document) => {
     const errorReporter = ErrorReporter(window);
     const format    = makeFormat(window);
     const url       = Url(window, config.basePath);
+    const wakeLock  = WakeLock(window);
 
     // just hate this clunky syntax...
     const getEl = (id) => {
@@ -89,6 +91,7 @@ export const Factory = (config, state, document) => {
         tools:      () => tools,
         url:        () => url,
         document:   () => document,
+        wakeLock:   () => wakeLock,
     };
 
     // need to wrangle this a little so we can inject self into builders.

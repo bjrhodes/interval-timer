@@ -108,6 +108,36 @@ test.describe('timer', () => {
     });
 });
 
+test('keeps the screen awake only while running', async ({ page }) => {
+    // headless browsers refuse real wake locks, so record what the page asks for instead.
+    await page.addInitScript(() => {
+        window.wakeLocks = [];
+        Object.defineProperty(navigator, 'wakeLock', {
+            value: {
+                request: (type) => {
+                    const lock = { type, released: false, addEventListener: () => {} };
+                    lock.release = () => {
+                        lock.released = true;
+                        return Promise.resolve();
+                    };
+                    window.wakeLocks.push(lock);
+                    return Promise.resolve(lock);
+                },
+            },
+        });
+    });
+    await page.goto('/#timer/threshold-ladder');
+    const locks = () => page.evaluate(() => window.wakeLocks.map(({ type, released }) => ({ type, released })));
+
+    expect(await locks()).toEqual([]);
+
+    await page.locator('#timer').click();
+    await expect.poll(locks).toEqual([{ type: 'screen', released: false }]);
+
+    await page.locator('#timer').click();
+    await expect.poll(locks).toEqual([{ type: 'screen', released: true }]);
+});
+
 test('says so when the workout does not exist', async ({ page }) => {
     await page.goto('/#timer/no-such-workout');
 

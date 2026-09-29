@@ -1,8 +1,5 @@
-- Make the timer stop the computer from sleeping
-- make the edit links work on list view
 - Make blips / timer run when tab is in the background.
 - make the workflow builder work
-- Should work on refresh
 - view not found (404) page
 - Add in some testing
 - make intervals nest so I can repeat intervals, eg (burst, SS, burst, SS, burst) x 4 or nest in the BCI warmup.

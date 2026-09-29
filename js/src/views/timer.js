@@ -9,6 +9,7 @@ export const timer = (el, state, reportError, factory) => {
         format = factory.format(),
         classy = factory.classy(),
         router = factory.router(),
+        wakeLock = factory.wakeLock(),
         workoutStore = factory.store('workout'),
         els = {
             title: null,
@@ -119,8 +120,10 @@ export const timer = (el, state, reportError, factory) => {
         render(prev, event.now);
         if (workout.status === 'running') {
             frame = frame === null ? window.requestAnimationFrame(loop) : frame;
+            wakeLock.acquire();
         } else {
             stopLoop();
+            wakeLock.release();
         }
     };
 
@@ -148,6 +151,7 @@ export const timer = (el, state, reportError, factory) => {
 
     const teardown = () => {
         stopLoop();
+        wakeLock.release();
         el.style.display = '';
         el.removeEventListener('click', clicked);
         window.document.removeEventListener('keydown', keyed);
