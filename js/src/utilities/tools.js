@@ -6,6 +6,6 @@ export const tools = {
     },
     escapeHtml: (str) => {
         const entities = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '/': '&#x2F;' };
-        return String(str).replace(/[&<>"'\/]/g, (c) => entities[c]);
+        return String(str).replace(/[&<>"'/]/g, (c) => entities[c]);
     }
 };

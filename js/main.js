@@ -18,7 +18,7 @@ const basePathMeta = document.querySelector('meta[name="base-path"]'),
                 description: "The workout timer",
             },
             {
-                hash: "^editworkout(\/.*)?",
+                hash: "^editworkout(/.*)?",
                 view: "editWorkout",
                 id: "edit-workout",
                 description: "Edit workout",

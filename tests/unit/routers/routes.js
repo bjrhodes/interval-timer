@@ -4,5 +4,5 @@ import { enumerable } from '../../../js/src/utilities/enumerable.js';
 export const routes = () => enumerable([
     { hash: '', view: 'workouts', id: 'workouts' },
     { hash: /^timer(\/.*)?/, view: 'timer', id: 'timer' },
-    { hash: '^editworkout(\/.*)?', view: 'editWorkout', id: 'edit-workout' },
+    { hash: '^editworkout(/.*)?', view: 'editWorkout', id: 'edit-workout' },
 ]);

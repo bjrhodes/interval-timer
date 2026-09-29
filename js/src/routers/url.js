@@ -4,7 +4,7 @@
  */
 export const Url = (window, basePath) => {
     // strip any file name (e.g. index.html) so we're left with the folder.
-    basePath = basePath || window.location.pathname.replace(/[^\/]*$/, '');
+    basePath = basePath || window.location.pathname.replace(/[^/]*$/, '');
 
     const route = (to) => {
         return basePath + '#' + (to || '');
