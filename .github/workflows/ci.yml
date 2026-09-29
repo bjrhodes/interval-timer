@@ -74,11 +74,13 @@ jobs:
           BASE_PATH: ${{ steps.pages.outputs.base_path }}
         run: |
           mkdir -p _site
-          cp -r index.html 404.html css js img *.png favicon.ico \
+          cp -r index.html css js img *.png favicon.ico \
                 browserconfig.xml crossdomain.xml humans.txt robots.txt _site/
           # base_path is e.g. "/interval-timer", or empty for a root/custom domain.
-          sed -i "s|<meta name=\"base-path\" content=\"\">|<meta name=\"base-path\" content=\"${BASE_PATH}/\">|" _site/index.html
-          grep -q "<meta name=\"base-path\" content=\"${BASE_PATH}/\">" _site/index.html
+          sed -i "s|<base href=\"/\">|<base href=\"${BASE_PATH}/\">|" _site/index.html
+          grep -q "<base href=\"${BASE_PATH}/\">" _site/index.html
+          # Pages serves 404.html for unknown paths, so deep links like /timer/<id> load the app.
+          cp _site/index.html _site/404.html
 
       - uses: actions/upload-pages-artifact@v3
         with:

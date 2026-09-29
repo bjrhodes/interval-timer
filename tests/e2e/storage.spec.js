@@ -22,10 +22,10 @@ const exported = {
 };
 
 test('keeps an edited workout after a reload', async ({ page }) => {
-    await page.goto('/#editworkout/threshold-ladder');
+    await page.goto('/editworkout/threshold-ladder');
     await page.getByPlaceholder('Workout name').fill('Renamed Ladder');
     await page.getByPlaceholder('Workout name').press('Tab');
-    await page.goto('/#workouts');
+    await page.getByRole('navigation').getByRole('link', { name: 'Workouts' }).click();
     await page.reload();
 
     await expect(workoutItem(page, 'Renamed Ladder')).toBeVisible();
@@ -33,13 +33,13 @@ test('keeps an edited workout after a reload', async ({ page }) => {
 });
 
 test('keeps a new workout after a reload, at the end of the library', async ({ page }) => {
-    await page.goto('/#editworkout');
+    await page.goto('/editworkout');
     await page.getByPlaceholder('Workout name').fill('Quick Test');
     await page.getByPlaceholder('Workout name').press('Tab');
     await page.getByLabel('Interval title').fill('Sprint');
     await page.getByLabel('Duration').fill('20');
     await page.getByRole('link', { name: 'Add interval' }).click();
-    await page.goto('/#workouts');
+    await page.getByRole('navigation').getByRole('link', { name: 'Workouts' }).click();
     await page.reload();
 
     await expect(page.locator('.workout-list__workout')).toHaveCount(12);
@@ -47,7 +47,7 @@ test('keeps a new workout after a reload, at the end of the library', async ({ p
 });
 
 test('deletes a workout, after asking', async ({ page }) => {
-    await page.goto('/#workouts');
+    await page.goto('/workouts');
 
     page.once('dialog', (dialog) => dialog.dismiss());
     await workoutItem(page, 'Climbing Repeats').getByRole('button', { name: 'Delete' }).click();
@@ -64,7 +64,7 @@ test('deletes a workout, after asking', async ({ page }) => {
 });
 
 test('exports every workout as a JSON file', async ({ page }) => {
-    await page.goto('/#workouts');
+    await page.goto('/workouts');
 
     const [download] = await Promise.all([
         page.waitForEvent('download'),
@@ -81,7 +81,7 @@ test('exports every workout as a JSON file', async ({ page }) => {
 });
 
 test('imports workouts from a file, skipping any that are not valid', async ({ page }) => {
-    await page.goto('/#workouts');
+    await page.goto('/workouts');
 
     page.once('dialog', (dialog) => dialog.accept());
     await page.getByLabel('Import').setInputFiles({
@@ -99,7 +99,7 @@ test('imports workouts from a file, skipping any that are not valid', async ({ p
 });
 
 test('says so when an imported file is not an export', async ({ page }) => {
-    await page.goto('/#workouts');
+    await page.goto('/workouts');
 
     await page.getByLabel('Import').setInputFiles({
         name: 'notes.json',
@@ -112,7 +112,7 @@ test('says so when an imported file is not an export', async ({ page }) => {
 });
 
 test('restores a library from an export after everything is deleted', async ({ page }) => {
-    await page.goto('/#workouts');
+    await page.goto('/workouts');
     const [download] = await Promise.all([
         page.waitForEvent('download'),
         page.getByRole('button', { name: 'Export' }).click(),

@@ -1,7 +1,6 @@
 export const workouts = (el, state, reportError, factory) => {
     const tools = factory.tools(),
         summarise = factory.summarise(),
-        url = factory.url(),
         workoutStore = factory.store('workout'),
         els = {
             list: null,
@@ -13,8 +12,8 @@ export const workouts = (el, state, reportError, factory) => {
         return (stored instanceof Array ? stored : []).map((workout) => ({
             ...workout,
             ...summarise(workout),
-            editTarget: url.route("editworkout/" + workout.id),
-            startTarget: url.route("timer/" + workout.id),
+            editTarget: "editworkout/" + workout.id,
+            startTarget: "timer/" + workout.id,
         }));
     };
 

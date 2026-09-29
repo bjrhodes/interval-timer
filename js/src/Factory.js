@@ -1,7 +1,5 @@
 import { AppController } from './AppController.js';
-import { Hashed } from './routers/hashed.js';
-import { Plain } from './routers/plain.js';
-import { Url } from './routers/url.js';
+import { Router } from './routers/router.js';
 import { upgrade, workout } from './stores/workout-store.js';
 import { session } from './timer/session.js';
 import { Beep } from './utilities/beep.js';
@@ -36,7 +34,6 @@ export const Factory = (config, state, document) => {
     const classy    = Classy(document);
     const errorReporter = ErrorReporter(window);
     const format    = makeFormat(window);
-    const url       = Url(window, config.basePath);
     const wakeLock  = WakeLock(window);
 
     // just hate this clunky syntax...
@@ -46,11 +43,7 @@ export const Factory = (config, state, document) => {
 
     const router = () => {
         if (!cached.router) {
-            if ('onhashchange' in document.body) {
-                cached.router = Hashed(window, config.routes);
-            } else {
-                cached.router = Plain(window, config.routes);
-            }
+            cached.router = Router(window, config.routes);
         }
 
         return cached.router;
@@ -102,7 +95,6 @@ export const Factory = (config, state, document) => {
         summarise:  () => summarise,
         format:     () => format,
         tools:      () => tools,
-        url:        () => url,
         document:   () => document,
         wakeLock:   () => wakeLock,
         errorReporter: () => errorReporter.reporter,

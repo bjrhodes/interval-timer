@@ -11,6 +11,19 @@ const workoutItem = (page, title) => page.locator('.workout-list__workout', {
     has: page.getByRole('heading', { name: title, exact: true }),
 });
 
+// links are relative to <base href>, so check where they actually go.
+const expectLinkTo = async (link, path) => {
+    await expect.poll(() => link.evaluate((a) => new URL(a.href).pathname)).toBe(path);
+};
+
+// follows a link the way the app's own links do, without reloading the page.
+const followLink = (page, href) => page.evaluate((to) => {
+    const a = document.createElement('a');
+    a.href = to;
+    document.body.append(a);
+    a.click();
+}, href);
+
 const expectOnlyVisible = async (page, name) => {
     const all = sections(page);
     for (const [key, section] of Object.entries(all)) {
@@ -29,12 +42,12 @@ test.describe('routing', () => {
         await expectOnlyVisible(page, 'home');
         const next = page.locator('.next-workout');
         await expect(next.getByRole('heading', { level: 1 })).toHaveText('Over Unders (3/2/3/2)');
-        await expect(next.getByRole('link', { name: 'Start workout' })).toHaveAttribute('href', '/#timer/over-unders-3-2-3-2');
+        await expectLinkTo(next.getByRole('link', { name: 'Start workout' }), '/timer/over-unders-3-2-3-2');
         await expect(page.locator('.upcoming-list__item')).toHaveCount(3);
     });
 
     test('lists every workout', async ({ page }) => {
-        await page.goto('/#workouts');
+        await page.goto('/workouts');
 
         await expectOnlyVisible(page, 'workouts');
         await expect(page.locator('.workout-list__workout')).toHaveCount(11);
@@ -42,7 +55,7 @@ test.describe('routing', () => {
     });
 
     test('falls back to the home page for an unknown route', async ({ page }) => {
-        await page.goto('/#not-a-real-page');
+        await page.goto('/not-a-real-page');
 
         await expectOnlyVisible(page, 'home');
     });
@@ -51,8 +64,8 @@ test.describe('routing', () => {
         await page.goto('/');
         const nav = page.getByRole('navigation');
 
-        await expect(nav.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/#');
-        await expect(nav.getByRole('link', { name: 'Workouts' })).toHaveAttribute('href', '/#workouts');
+        await expectLinkTo(nav.getByRole('link', { name: 'Home' }), '/');
+        await expectLinkTo(nav.getByRole('link', { name: 'Workouts' }), '/workouts');
     });
 
     test('marks the current section in the nav', async ({ page }) => {
@@ -60,13 +73,13 @@ test.describe('routing', () => {
         const nav = page.getByRole('navigation');
         await expect(nav.getByRole('link', { name: 'Home' })).toHaveAttribute('aria-current', 'page');
 
-        await page.goto('/#editworkout/threshold-ladder');
+        await page.goto('/editworkout/threshold-ladder');
         await expect(nav.getByRole('link', { name: 'Workouts' })).toHaveAttribute('aria-current', 'page');
         await expect(nav.getByRole('link', { name: 'Home' })).not.toHaveAttribute('aria-current', 'page');
     });
 
     test('hides the nav while the timer is showing', async ({ page }) => {
-        await page.goto('/#timer/threshold-ladder');
+        await page.goto('/timer/threshold-ladder');
 
         await expect(page.getByRole('navigation')).toBeHidden();
     });
@@ -74,17 +87,39 @@ test.describe('routing', () => {
     test('keeps the base path when loaded via index.html', async ({ page }) => {
         await page.goto('/index.html');
 
-        await expect(page.getByRole('navigation').getByRole('link', { name: 'Workouts' }))
-            .toHaveAttribute('href', '/#workouts');
-        await expect(page.locator('.next-workout').getByRole('link', { name: 'Start workout' }))
-            .toHaveAttribute('href', '/#timer/over-unders-3-2-3-2');
+        await expectLinkTo(page.getByRole('navigation').getByRole('link', { name: 'Workouts' }), '/workouts');
+        await expectLinkTo(page.locator('.next-workout').getByRole('link', { name: 'Start workout' }),
+            '/timer/over-unders-3-2-3-2');
+    });
+
+    test('deep links and navigates from a folder, as deployed to GitHub Pages', async ({ page }) => {
+        // stand in for the Pages build: serve the site under /interval-timer/ with the <base href> it sets.
+        await page.route('**/interval-timer/**', async (route) => {
+            const url = new URL(route.request().url());
+            const response = await route.fetch({ url: url.origin + url.pathname.replace('/interval-timer', '') });
+            const html = response.headers()['content-type']?.includes('text/html');
+            await route.fulfill({
+                response,
+                body: html ? (await response.text()).replace('<base href="/">', '<base href="/interval-timer/">')
+                    : await response.body(),
+            });
+        });
+
+        await page.goto('/interval-timer/timer/threshold-ladder');
+        await expectOnlyVisible(page, 'timer');
+        await expect(page.locator('.current-interval__action')).toHaveText('Warmup');
+
+        await page.getByRole('link', { name: 'Exit workout' }).click();
+        await expect(page).toHaveURL(/\/interval-timer\/$/);
+        await expectOnlyVisible(page, 'home');
+        await expectLinkTo(page.getByRole('navigation').getByRole('link', { name: 'Workouts' }), '/interval-timer/workouts');
     });
 
     test('starts a workout from the list', async ({ page }) => {
-        await page.goto('/#workouts');
+        await page.goto('/workouts');
         await workoutItem(page, 'Threshold Ladder').getByRole('link', { name: 'Start' }).click();
 
-        await expect(page).toHaveURL(/#timer\/threshold-ladder$/);
+        await expect(page).toHaveURL(/\/timer\/threshold-ladder$/);
         await expectOnlyVisible(page, 'timer');
         await expect(page.locator('.current-interval__action')).toHaveText('Warmup');
         await expect(page.locator('.current-interval__timer')).toHaveText('0:14:00');
@@ -95,15 +130,15 @@ test.describe('routing', () => {
         await page.goto('/');
         await page.getByRole('link', { name: 'Start workout' }).click();
 
-        await expect(page).toHaveURL(/#timer\/over-unders-3-2-3-2$/);
+        await expect(page).toHaveURL(/\/timer\/over-unders-3-2-3-2$/);
         await expectOnlyVisible(page, 'timer');
     });
 
     test('edits a workout from the list', async ({ page }) => {
-        await page.goto('/#workouts');
+        await page.goto('/workouts');
         await workoutItem(page, 'Threshold Ladder').getByRole('link', { name: 'Edit' }).click();
 
-        await expect(page).toHaveURL(/#editworkout\/threshold-ladder$/);
+        await expect(page).toHaveURL(/\/editworkout\/threshold-ladder$/);
         await expectOnlyVisible(page, 'edit');
         await expect(page.getByPlaceholder('Workout name')).toHaveValue('Threshold Ladder');
         await expect(page.getByRole('radio', { name: 'Heart Rate Zone' })).toBeChecked();
@@ -111,7 +146,7 @@ test.describe('routing', () => {
     });
 
     test('deep links straight to a workout timer', async ({ page }) => {
-        await page.goto('/#timer/descending-intervals');
+        await page.goto('/timer/descending-intervals');
 
         await expectOnlyVisible(page, 'timer');
         await expect(page.locator('.current-interval__action')).toHaveText('Get set...');
@@ -119,7 +154,7 @@ test.describe('routing', () => {
     });
 
     test('deep links straight to editing a workout', async ({ page }) => {
-        await page.goto('/#editworkout/climbing-repeats');
+        await page.goto('/editworkout/climbing-repeats');
 
         await expectOnlyVisible(page, 'edit');
         await expect(page.getByPlaceholder('Workout name')).toHaveValue('Climbing Repeats');
@@ -127,10 +162,10 @@ test.describe('routing', () => {
     });
 
     test('creates a new workout from the list', async ({ page }) => {
-        await page.goto('/#workouts');
+        await page.goto('/workouts');
         await page.getByRole('link', { name: 'New workout' }).click();
 
-        await expect(page).toHaveURL(/#editworkout$/);
+        await expect(page).toHaveURL(/\/editworkout$/);
         await expectOnlyVisible(page, 'edit');
         await expect(page.getByPlaceholder('Workout name')).toHaveValue('');
         await expect(page.locator('.interval-list__interval')).toHaveCount(0);
@@ -138,7 +173,7 @@ test.describe('routing', () => {
     });
 
     test('builds a new workout and starts it', async ({ page }) => {
-        await page.goto('/#editworkout');
+        await page.goto('/editworkout');
         await page.getByPlaceholder('Workout name').fill('Quick Test');
         await page.getByPlaceholder('Workout name').press('Tab');
         await page.getByLabel('Interval title').fill('Sprint');
@@ -165,49 +200,49 @@ test.describe('routing', () => {
     });
 
     test('exits the timer back to the home page', async ({ page }) => {
-        await page.goto('/#timer/threshold-ladder');
+        await page.goto('/timer/threshold-ladder');
         await page.getByRole('link', { name: 'Exit workout' }).click();
 
         await expectOnlyVisible(page, 'home');
     });
 
     test('follows browser back and forward', async ({ page }) => {
-        await page.goto('/#workouts');
+        await page.goto('/workouts');
         await workoutItem(page, 'Climbing Repeats').getByRole('link', { name: 'Start' }).click();
         await expectOnlyVisible(page, 'timer');
 
         await page.goBack();
-        await expect(page).toHaveURL(/#workouts$/);
+        await expect(page).toHaveURL(/\/workouts$/);
         await expectOnlyVisible(page, 'workouts');
 
         await page.goForward();
-        await expect(page).toHaveURL(/#timer\/climbing-repeats$/);
+        await expect(page).toHaveURL(/\/timer\/climbing-repeats$/);
         await expectOnlyVisible(page, 'timer');
         await expect(page.locator('.current-interval__action')).toHaveText('Warmup');
     });
 
     test('switches straight from one workout timer to another', async ({ page }) => {
-        await page.goto('/#timer/threshold-ladder');
+        await page.goto('/timer/threshold-ladder');
         await expect(page.locator('.current-interval__action')).toHaveText('Warmup');
 
-        await page.evaluate(() => { window.location.hash = '#timer/descending-intervals'; });
+        await followLink(page, 'timer/descending-intervals');
 
         await expectOnlyVisible(page, 'timer');
         await expect(page.locator('.current-interval__action')).toHaveText('Get set...');
     });
 
     test('switches straight from editing one workout to another', async ({ page }) => {
-        await page.goto('/#editworkout/threshold-ladder');
+        await page.goto('/editworkout/threshold-ladder');
         await expect(page.getByPlaceholder('Workout name')).toHaveValue('Threshold Ladder');
 
-        await page.evaluate(() => { window.location.hash = '#editworkout/climbing-repeats'; });
+        await followLink(page, 'editworkout/climbing-repeats');
 
         await expectOnlyVisible(page, 'edit');
         await expect(page.getByPlaceholder('Workout name')).toHaveValue('Climbing Repeats');
     });
 
     test('keeps edits when moving to another view', async ({ page }) => {
-        await page.goto('/#editworkout/threshold-ladder');
+        await page.goto('/editworkout/threshold-ladder');
         await page.getByPlaceholder('Workout name').fill('Renamed Ladder');
         await page.getByPlaceholder('Workout name').press('Tab');
 
@@ -219,7 +254,7 @@ test.describe('routing', () => {
 
     test('stops a running timer when leaving it', async ({ page }) => {
         await page.clock.install();
-        await page.goto('/#timer/threshold-ladder');
+        await page.goto('/timer/threshold-ladder');
         const time = page.locator('.current-interval__timer');
 
         await page.locator('#timer').click();

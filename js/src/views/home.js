@@ -7,7 +7,6 @@ export const home = (el, state, reportError, factory) => {
     const tools = factory.tools(),
         format = factory.format(),
         summarise = factory.summarise(),
-        url = factory.url(),
         workoutStore = factory.store('workout');
 
     const upcomingCount = 3;
@@ -25,7 +24,7 @@ export const home = (el, state, reportError, factory) => {
             return '<h1 class="next-workout__title">Nothing planned</h1>' +
                 '<p class="next-workout__meta">Create a workout to get started.</p>' +
                 '<div class="next-workout__actions">' +
-                    '<a href="' + e(url.route('editworkout')) + '" class="btn btn--primary btn--large">New workout</a>' +
+                    '<a href="editworkout" class="btn btn--primary btn--large">New workout</a>' +
                 '</div>';
         }
         return '<h1 class="next-workout__title">' + e(workout.title || 'Untitled workout') + '</h1>' +
@@ -35,8 +34,8 @@ export const home = (el, state, reportError, factory) => {
                 '<span>' + e(workout.effortMode) + '</span>' +
             '</p>' +
             '<div class="next-workout__actions">' +
-                '<a href="' + e(url.route('timer/' + workout.id)) + '" class="btn btn--primary btn--large">Start workout</a>' +
-                '<a href="' + e(url.route('editworkout/' + workout.id)) + '" class="btn btn--large">Edit</a>' +
+                '<a href="' + e('timer/' + workout.id) + '" class="btn btn--primary btn--large">Start workout</a>' +
+                '<a href="' + e('editworkout/' + workout.id) + '" class="btn btn--large">Edit</a>' +
             '</div>';
     };
 
@@ -47,7 +46,7 @@ export const home = (el, state, reportError, factory) => {
         }
         return workouts.map((workout) => {
             return '<li class="upcoming-list__item">' +
-                '<a href="' + e(url.route('timer/' + workout.id)) + '" class="upcoming-list__link">' +
+                '<a href="' + e('timer/' + workout.id) + '" class="upcoming-list__link">' +
                     '<span class="upcoming-list__title">' + e(workout.title || 'Untitled workout') + '</span>' +
                     '<span class="upcoming-list__time muted">' + e(format.durationAsClock(workout.seconds)) + '</span>' +
                 '</a>' +
@@ -69,7 +68,7 @@ export const home = (el, state, reportError, factory) => {
             : stat(0, 'workouts');
 
         return '<div class="stats">' + stats + '</div>' +
-            '<a href="' + e(url.route('workouts')) + '" class="btn">Browse workouts</a>';
+            '<a href="workouts" class="btn">Browse workouts</a>';
     };
 
     const teardown = () => {

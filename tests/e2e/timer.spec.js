@@ -15,7 +15,7 @@ const timer = (page) => ({
 test.describe('timer', () => {
     test.beforeEach(async ({ page }) => {
         await page.clock.install();
-        await page.goto('/#timer/threshold-ladder');
+        await page.goto('/timer/threshold-ladder');
     });
 
     test('waits, paused, until clicked', async ({ page }) => {
@@ -126,7 +126,7 @@ test('keeps the screen awake only while running', async ({ page }) => {
             },
         });
     });
-    await page.goto('/#timer/threshold-ladder');
+    await page.goto('/timer/threshold-ladder');
     const locks = () => page.evaluate(() => window.wakeLocks.map(({ type, released }) => ({ type, released })));
 
     expect(await locks()).toEqual([]);
@@ -149,7 +149,7 @@ test('keeps counting and beeping when animation frames stop, as in a background 
             return Promise.resolve();
         };
     });
-    await page.goto('/#timer/threshold-ladder');
+    await page.goto('/timer/threshold-ladder');
     const t = timer(page);
 
     await t.section.click();
@@ -164,7 +164,7 @@ test('keeps counting and beeping when animation frames stop, as in a background 
 });
 
 test('says so when the workout does not exist', async ({ page }) => {
-    await page.goto('/#timer/no-such-workout');
+    await page.goto('/timer/no-such-workout');
 
     await expect(page.locator('.current-interval__action')).toHaveText('Workout not found');
     await expect(page.locator('.current-interval__timer')).toHaveText('--');

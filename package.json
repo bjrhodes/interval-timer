@@ -11,7 +11,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "serve": "http-server -p 4173 -c-1 --silent",
+    "serve": "http-server -p 4173 -c-1 --silent --proxy http://localhost:4173?",
     "lint": "eslint ."
   },
   "devDependencies": {

@@ -3,7 +3,6 @@ export const editWorkout = (el, state, reportError, factory) => {
         effort = factory.effort(),
         router = factory.router(),
         summarise = factory.summarise(),
-        url = factory.url(),
         workoutStore = factory.store('workout'),
         els = {
             name: null,
@@ -96,7 +95,7 @@ export const editWorkout = (el, state, reportError, factory) => {
     const renderSummary = () => {
         const summary = summarise(workout);
         els.summary.textContent = summary.intervals + ' intervals · ' + summary.duration;
-        els.start.setAttribute('href', url.route('timer/' + workout.id));
+        els.start.setAttribute('href', 'timer/' + workout.id);
         els.start.hidden = !summary.intervals;
     };
 

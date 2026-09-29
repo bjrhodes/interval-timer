@@ -10,3 +10,10 @@
 
 ## Async store reads must wait for queued writes
 - A read issued while a write is still in flight can open its IndexedDB transaction first and return stale data. Stores serialise writes and make reads wait on the write queue. Test this by reading without awaiting the save.
+
+## Delete files with `rm`, not `git rm`
+- `git rm` stages the deletion, and staging is the human-review seam. Use plain `rm`.
+
+## Hash URLs to path URLs turns in-page navigation into reloads
+- **What happened:** `page.goto('/#workouts')` only changed the hash; `page.goto('/workouts')` reloads the page, cutting off an IndexedDB save still in flight, so a storage e2e test failed.
+- **Rule:** when a test edits and then moves on, move with the app's own links (or a click), not `goto`, unless a reload is the point of the test.

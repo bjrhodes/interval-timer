@@ -3,7 +3,7 @@ import { Factory } from '../../js/src/Factory.js';
 import { enumerable } from '../../js/src/utilities/enumerable.js';
 
 describe('Factory', () => {
-    const factory = () => Factory({ basePath: '/', routes: enumerable([]) }, {}, document);
+    const factory = () => Factory({ routes: enumerable([]) }, {}, document);
 
     describe('store', () => {
         it('hands every caller the same store', () => {

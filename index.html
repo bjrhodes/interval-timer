@@ -8,8 +8,8 @@
     <meta name="description" content="Run structured interval workouts.">
     <meta name="theme-color" content="#0f1115">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- Set by the GitHub Pages build; when empty the base path is detected from the URL. -->
-    <meta name="base-path" content="">
+    <!-- Relative links and assets resolve from here, so deep links work. The GitHub Pages build sets the repo folder. -->
+    <base href="/">
 
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <!-- Place favicon.ico in the root directory -->
@@ -25,13 +25,13 @@
         <![endif]-->
 
     <header class="app-header">
-        <a class="app-header__brand" href="#" data-route="">Interval Timer</a>
+        <a class="app-header__brand" href="./">Interval Timer</a>
         <nav class="app-nav" aria-label="Main">
-            <a class="app-nav__link" href="#" data-route="" data-nav="home">
+            <a class="app-nav__link" href="./" data-nav="home">
                 <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8M5 9.5V21h5v-6h4v6h5V9.5"/></svg>
                 <span>Home</span>
             </a>
-            <a class="app-nav__link" href="#workouts" data-route="workouts" data-nav="workouts">
+            <a class="app-nav__link" href="workouts" data-nav="workouts">
                 <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>
                 <span>Workouts</span>
             </a>
@@ -61,7 +61,7 @@
             <div class="page-header">
                 <h1 class="page-header__title">Workouts</h1>
                 <div class="page-header__actions">
-                    <a href="#editworkout" data-route="editworkout" class="btn btn--primary workouts__add">New workout</a>
+                    <a href="editworkout" class="btn btn--primary workouts__add">New workout</a>
                     <button type="button" class="btn workouts__export">Export</button>
                     <label class="btn workouts__import">
                         Import
@@ -77,7 +77,7 @@
 
         <section id="edit-workout" class="edit-workout">
             <div class="page-header">
-                <a href="#workouts" data-route="workouts" class="back-link">
+                <a href="workouts" class="back-link">
                     <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
                     Workouts
                 </a>
@@ -121,7 +121,7 @@
 
     <section id="timer" class="timer">
         <header class="timer__bar">
-            <a class="timer__exit" href="#" data-route="" aria-label="Exit workout">
+            <a class="timer__exit" href="./" aria-label="Exit workout">
                 <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
             </a>
             <span class="timer__title"></span>

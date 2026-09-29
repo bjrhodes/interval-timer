@@ -37,7 +37,6 @@ export const AppController = (factory) => {
 
     return {
         run: () => {
-            factory.url().bindLinks();
             router.init(transition);
         }
     };
