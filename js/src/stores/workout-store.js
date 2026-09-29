@@ -1,572 +1,99 @@
+import { memoryDb } from '../utilities/idb.js';
+import { seedWorkouts } from './seed-workouts.js';
+
+const STORE = 'workouts';
+// the version of the export format; bump it with the database version when the workout shape changes.
+const VERSION = 1;
+const UNITS = ['seconds', 'minutes', 'hours'];
+
+// `order` keeps library order, as IndexedDB hands records back sorted by id.
+const seeded = () => seedWorkouts.map((workout, order) => ({...workout, order}));
+
+// `order` is the store's business, so it never leaves it.
+const unordered = (workout) => {
+    const copy = {...workout};
+    delete copy.order;
+    return copy;
+};
+
+// Creates the schema and seeds a new database.
+// @extend migrate older workouts here as their shape changes, e.g. nested intervals.
+export const upgrade = (db, oldVersion) => {
+    if (oldVersion < 1) {
+        const workouts = db.createObjectStore(STORE, { keyPath: 'id' });
+        seeded().forEach((workout) => workouts.put(workout));
+    }
+};
+
+// Light checks only: enough that an imported workout can't break the views.
+export const isWorkout = (workout) => {
+    return !!workout && typeof workout.id === 'string' && workout.id !== '' &&
+        Array.isArray(workout.intervals) &&
+        workout.intervals.every((interval) => !!interval && interval.time > 0 && UNITS.includes(interval.unit));
+};
+
 export const workout = (state, factory) => {
-    const tools = factory.tools();
-
-    const fetchWorkouts = () => {
-        return [
-            {
-                "id": "over-unders-3-2-3-2",
-                "effortMode": "heartRate",
-                "title": "Over Unders (3/2/3/2)",
-                "intervals": [
-                    {action: "Warmup", time: 14, unit: "minutes", effort: 130},
-                    {action: "GET READY! Bring RPM to 90, HR to 159", time: 60, unit: "seconds", effort: 159},
-                    {action: "Steady State (90 rpm, HR 159 - 162)", time: 3, unit: "minutes", effort: 160},
-                    {action: "Climbing Repeat (90 rpm, HR 164 - 167)", time: 2, unit: "minutes", effort: 165},
-                    {action: "Steady State (90 rpm, HR 159 - 162)", time: 3, unit: "minutes", effort: 160},
-                    {action: "Climbing Repeat (90 rpm, HR 164 - 167) ", time: 2, unit: "minutes", effort: 165},
-                    {action: "Recover", time: 4, unit: "minutes", effort: 115},
-                    {action: "Steady State (90 rpm, HR 159 - 162)", time: 3, unit: "minutes", effort: 160},
-                    {action: "Climbing Repeat (90 rpm, HR 164 - 167)", time: 2, unit: "minutes", effort: 165},
-                    {action: "Steady State (90 rpm, HR 159 - 162)", time: 3, unit: "minutes", effort: 160},
-                    {action: "Climbing Repeat (90 rpm, HR 164 - 167)", time: 2, unit: "minutes", effort: 165},
-                    {action: "Recover", time: 4, unit: "minutes", effort: 115},
-                    {action: "Steady State (90 rpm, HR 159 - 162)", time: 3, unit: "minutes", effort: 160},
-                    {action: "Climbing Repeat (90 rpm, HR 164 - 167)", time: 2, unit: "minutes", effort: 165},
-                    {action: "Steady State (90 rpm, HR 159 - 162)", time: 3, unit: "minutes", effort: 160},
-                    {action: "Climbing Repeat (90 rpm, HR 164 - 167)", time: 2, unit: "minutes", effort: 165},
-                    {action: "Recover", time: 4, unit: "minutes", effort: 115},
-                    {action: "Steady State (90 rpm, HR 159 - 162)", time: 3, unit: "minutes", effort: 160},
-                    {action: "Climbing Repeat (90 rpm, HR 164 - 167)", time: 2, unit: "minutes", effort: 165},
-                    {action: "Steady State (90 rpm, HR 159 - 162)", time: 3, unit: "minutes", effort: 160},
-                    {action: "Climbing Repeat (90 rpm, HR 164 - 167)", time: 2, unit: "minutes", effort: 165},
-                    {action: "Recover", time: 4, unit: "minutes", effort: 115},
-                    {action: "cooldown ", time: 10, unit: "minutes", effort: 110},
-                ]
-            },
-            {
-                "id": "over-unders-4-2-4",
-                "effortMode": "hrZone",
-                "title": "Over Unders (4/2/4)",
-                "intervals": [
-                    {action: "Warmup", time: 14, unit: "minutes", effort: 2},
-                    {action: "GET READY! (1 of 4) Bring RPM to 90, HR to 159", time: 60, unit: "seconds", effort: 3},
-
-                    {action: "Steady State (90 rpm, HR 159 - 162)", time: 4, unit: "minutes", effort: 3},
-                    {action: "Climbing Repeat (90 rpm, HR 164 - 167)", time: 2, unit: "minutes", effort: 4},
-                    {action: "Steady State (90 rpm, HR 159 - 162)", time: 4, unit: "minutes", effort: 3},
-                    {action: "Recover (2/4 Next)", time: 4, unit: "minutes", effort: 1},
-
-                    {action: "Steady State (90 rpm, HR 159 - 162)", time: 4, unit: "minutes", effort: 3},
-                    {action: "Climbing Repeat (90 rpm, HR 164 - 167)", time: 2, unit: "minutes", effort: 4},
-                    {action: "Steady State (90 rpm, HR 159 - 162)", time: 4, unit: "minutes", effort: 3},
-                    {action: "Recover (3/4 Next)", time: 4, unit: "minutes", effort: 1},
-
-                    {action: "Steady State (90 rpm, HR 159 - 162)", time: 4, unit: "minutes", effort: 3},
-                    {action: "Climbing Repeat (90 rpm, HR 164 - 167)", time: 2, unit: "minutes", effort: 4},
-                    {action: "Steady State (90 rpm, HR 159 - 162)", time: 4, unit: "minutes", effort: 3},
-                    {action: "Recover (4/4 Next)", time: 4, unit: "minutes", effort: 1},
-
-                    {action: "Steady State (90 rpm, HR 159 - 162)", time: 4, unit: "minutes", effort: 3},
-                    {action: "Climbing Repeat (90 rpm, HR 164 - 167)", time: 2, unit: "minutes", effort: 4},
-                    {action: "Steady State (90 rpm, HR 159 - 162)", time: 4, unit: "minutes", effort: 3},
-
-                    {action: "cooldown ", time: 10, unit: "minutes", effort: 1},
-                ]
-            },
-            {
-                "id": "steady-state-w-burst",
-                "effortMode": "heartRate",
-                "title": "Steady State (SS) w/ burst",
-                "intervals" : [
-                    {action: "Warmup", time: 14, unit: "minutes", effort: 130},
-
-                    {action: "GET READY! Bring RPM to 90, HR to 159", time: 60, unit: "seconds", effort: 159},
-
-                    {action: "STAND UP! MAX EFFORT (HR 180)", time: 10, unit: "seconds", effort: 180},
-                    {action: "Steady State (90 rpm, HR 159 - 162)", time: 5, unit: "minutes", effort: 160},
-                    {action: "STAND UP! MAX EFFORT (HR 180)", time: 10, unit: "seconds", effort: 180},
-                    {action: "Steady State (90 rpm, HR 159 - 162)", time: 5, unit: "minutes", effort: 160},
-                    {action: "STAND UP! MAX EFFORT (HR 180)", time: 10, unit: "seconds", effort: 180},
-                    {action: "Recover", time: 5, unit: "minutes", effort: 115},
-
-                    {action: "STAND UP! MAX EFFORT (HR 180)", time: 10, unit: "seconds", effort: 180},
-                    {action: "Steady State (90 rpm, HR 159 - 162)", time: 5, unit: "minutes", effort: 160},
-                    {action: "STAND UP! MAX EFFORT (HR 180)", time: 10, unit: "seconds", effort: 180},
-                    {action: "Steady State (90 rpm, HR 159 - 162)", time: 5, unit: "minutes", effort: 160},
-                    {action: "STAND UP! MAX EFFORT (HR 180)", time: 10, unit: "seconds", effort: 180},
-                    {action: "Recover", time: 5, unit: "minutes", effort: 115},
-
-                    {action: "STAND UP! MAX EFFORT (HR 180)", time: 10, unit: "seconds", effort: 180},
-                    {action: "Steady State (90 rpm, HR 159 - 162)", time: 5, unit: "minutes", effort: 160},
-                    {action: "STAND UP! MAX EFFORT (HR 180)", time: 10, unit: "seconds", effort: 180},
-                    {action: "Steady State (90 rpm, HR 159 - 162)", time: 5, unit: "minutes", effort: 160},
-                    {action: "STAND UP! MAX EFFORT (HR 180)", time: 10, unit: "seconds", effort: 180},
-                    {action: "Recover", time: 5, unit: "minutes", effort: 115},
-
-                    {action: "STAND UP! MAX EFFORT (HR 180)", time: 10, unit: "seconds", effort: 180},
-                    {action: "Steady State (90 rpm, HR 159 - 162)", time: 5, unit: "minutes", effort: 160},
-                    {action: "STAND UP! MAX EFFORT (HR 180)", time: 10, unit: "seconds", effort: 180},
-                    {action: "Steady State (90 rpm, HR 159 - 162)", time: 5, unit: "minutes", effort: 160},
-                    {action: "STAND UP! MAX EFFORT (HR 180)", time: 10, unit: "seconds", effort: 180},
-
-                    {action: "cooldown ", time: 10, unit: "minutes", effort: 110},
-                ]
-            },
-            {
-                "id": "descending-intervals",
-                "effortMode": "perceived",
-                "title": "Descending Intervals",
-                "intervals" : [
-                    {action: "Get set...", time: 1, unit: "minutes"},
-
-                    {action: "Warmup", time: 14, unit: "minutes", effort: 3},
-
-                    {action: "GET READY! Bring RPM to 90, HR to 159", time: 60, unit: "seconds", effort: 5},
-
-                    {action: "MAX EFFORT (HR 180)", time: 90, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 90, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT (HR 180)", time: 75, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 75, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT (HR 180)", time: 60, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 60, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT (HR 180)", time: 45, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 45, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT (HR 180)", time: 30, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 30, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover (1 of 3 down)", time: 5, unit: "minutes", effort: 2},
-
-                    {action: "MAX EFFORT (HR 180)", time: 90, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 90, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT (HR 180)", time: 75, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 75, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT (HR 180)", time: 60, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 60, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT (HR 180)", time: 45, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 45, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT (HR 180)", time: 30, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 30, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover (2 of 3 down)", time: 5, unit: "minutes", effort: 2},
-
-                    {action: "MAX EFFORT (HR 180)", time: 90, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 90, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT (HR 180)", time: 75, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 75, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT (HR 180)", time: 60, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 60, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT (HR 180)", time: 45, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 45, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT (HR 180)", time: 30, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 30, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT (HR 180)", time: 15, unit: "seconds", effort: 10},
-
-                    {action: "cooldown ", time: 10, unit: "minutes", effort: 2},
-                ]
-            },
-            {
-                "id": "threshold-ladder",
-                "effortMode": "hrZone",
-                "title": "Threshold Ladder",
-                "intervals": [
-
-                    {action: "Warmup", time: 14, unit: "minutes", effort: 2},
-
-                    {action: "GET READY! Bring RPM to 90, HR to 159", time: 60, unit: "seconds", effort: 3},
-
-                    {action: "Power interval (100+ rpm, HR 173 to 180) ", time: 1, unit: "minutes", effort: 5},
-                    {action: "Climbing Repeat (90 rpm, HR 164 - 167) ", time: 2, unit: "minutes", effort: 4},
-                    {action: "Steady State (90 rpm, HR 159 - 162)", time: 5, unit: "minutes", effort: 3},
-                    {action: "Recover", time: 4, unit: "minutes", effort: 1},
-
-                    {action: "Power interval (100+ rpm, HR 173 to 180) ", time: 1, unit: "minutes", effort: 5},
-                    {action: "Climbing Repeat (90 rpm, HR 164 - 167) ", time: 2, unit: "minutes", effort: 4},
-                    {action: "Steady State (90 rpm, HR 159 - 162)", time: 5, unit: "minutes", effort: 3},
-                    {action: "Recover", time: 4, unit: "minutes", effort: 1},
-
-                    {action: "Power interval (100+ rpm, HR 173 to 180) ", time: 1, unit: "minutes", effort: 5},
-                    {action: "Climbing Repeat (90 rpm, HR 164 - 167) ", time: 2, unit: "minutes", effort: 4},
-                    {action: "Steady State (90 rpm, HR 159 - 162)", time: 5, unit: "minutes", effort: 3},
-
-                    {action: "cooldown ", time: 15, unit: "minutes", effort: 1},
-                ]
-            },
-            {
-                "id": "threshold-ladder-tempo",
-                "effortMode": "heartRate",
-                "title": "Threshold Ladder Tempo",
-                "intervals": [
-
-                    {action: "Warmup", time: 14, unit: "minutes", effort: 130},
-
-                    {action: "GET READY! Bring RPM to 90, HR to 159", time: 60, unit: "seconds", effort: 159},
-
-                    {action: "Climbing Repeat (90 rpm, HR 164 - 167) ", time: 2, unit: "minutes", effort: 165},
-                    {action: "Steady State (90 rpm, HR 159 - 162)", time: 5, unit: "minutes", effort: 160},
-                    {action: "Tempo (70/75 RPM, HR 152-156)", time: 8, unit: "minutes", effort: 154},
-                    {action: "Recover 1/3 done", time: 5, unit: "minutes", effort: 115},
-
-                    {action: "Climbing Repeat (90 rpm, HR 164 - 167) ", time: 2, unit: "minutes", effort: 165},
-                    {action: "Steady State (90 rpm, HR 159 - 162)", time: 5, unit: "minutes", effort: 160},
-                    {action: "Tempo (70/75 RPM, HR 152-156)", time: 8, unit: "minutes", effort: 154},
-                    {action: "Recover 2/3 done", time: 5, unit: "minutes", effort: 115},
-
-                    {action: "Climbing Repeat (90 rpm, HR 164 - 167) ", time: 2, unit: "minutes", effort: 165},
-                    {action: "Steady State (90 rpm, HR 159 - 162)", time: 5, unit: "minutes", effort: 160},
-                    {action: "Tempo (70/75 RPM, HR 152-156)", time: 8, unit: "minutes", effort: 154},
-
-                    {action: "cooldown ", time: 20, unit: "minutes", effort: 110},
-                ]
-            },
-            {
-                "id": "climbing-repeats",
-                "effortMode": "power",
-                "title": "Climbing Repeats",
-                "intervals": [
-
-                    {action: "Warmup", time: 14, unit: "minutes", effort: 140},
-
-                    {action: "GET READY! Bring RPM to 90, HR to 159", time: 60, unit: "seconds", effort: 190},
-
-                    {action: "Climbing Repeat (90 rpm, HR 164 - 167) ", time: 6, unit: "minutes", effort: 245},
-                    {action: "Recover", time: 4, unit: "minutes", effort: 110},
-                    {action: "Climbing Repeat (90 rpm, HR 164 - 167) ", time: 6, unit: "minutes", effort: 245},
-                    {action: "Recover", time: 4, unit: "minutes", effort: 110},
-                    {action: "Climbing Repeat (90 rpm, HR 164 - 167) ", time: 6, unit: "minutes", effort: 245},
-                    {action: "Recover", time: 4, unit: "minutes", effort: 110},
-                    {action: "Climbing Repeat (90 rpm, HR 164 - 167) ", time: 6, unit: "minutes", effort: 245},
-                    {action: "Recover", time: 4, unit: "minutes", effort: 110},
-                    {action: "Climbing Repeat (90 rpm, HR 164 - 167) ", time: 6, unit: "minutes", effort: 245},
-
-                    {action: "cooldown ", time: 10, unit: "minutes", effort: 100},
-                ]
-            },
-            {
-                "id": "power-intervals-2",
-                "effortMode": "power",
-                "title": "Power intervals (2 min)",
-                "intervals": [
-
-                    {action: "Warmup", time: 15, unit: "minutes", effort: 140},
-
-                    {action: "PREPARE: Build to 100+ rpm, HR 173", time: 1, unit: "minutes", effort: 220},
-                    {action: "Power interval (100+ rpm, HR 173 to 180) ", time: 2, unit: "minutes", effort: 300},
-                    {action: "Recover", time: 2, unit: "minutes", effort: 110},
-                    {action: "PREPARE: Build to 100+ rpm, HR 173", time: 1, unit: "minutes", effort: 220},
-                    {action: "Power interval (100+ rpm, HR 173 to 180) ", time: 2, unit: "minutes", effort: 300},
-                    {action: "Recover", time: 2, unit: "minutes", effort: 110},
-                    {action: "PREPARE: Build to 100+ rpm, HR 173", time: 1, unit: "minutes", effort: 220},
-                    {action: "Power interval (100+ rpm, HR 173 to 180) ", time: 2, unit: "minutes", effort: 300},
-                    {action: "Recover", time: 2, unit: "minutes", effort: 110},
-                    {action: "PREPARE: Build to 100+ rpm, HR 173", time: 1, unit: "minutes", effort: 220},
-                    {action: "Power interval (100+ rpm, HR 173 to 180) ", time: 2, unit: "minutes", effort: 300},
-                    {action: "Recover", time: 2, unit: "minutes", effort: 110},
-                    {action: "PREPARE: Build to 100+ rpm, HR 173", time: 1, unit: "minutes", effort: 220},
-                    {action: "Power interval (100+ rpm, HR 173 to 180) ", time: 2, unit: "minutes", effort: 300},
-                    {action: "Recover", time: 2, unit: "minutes", effort: 110},
-                    {action: "PREPARE: Build to 100+ rpm, HR 173", time: 1, unit: "minutes", effort: 220},
-                    {action: "Power interval (100+ rpm, HR 173 to 180) ", time: 2, unit: "minutes", effort: 300},
-                    {action: "Recover", time: 2, unit: "minutes", effort: 110},
-                    {action: "PREPARE: Build to 100+ rpm, HR 173", time: 1, unit: "minutes", effort: 220},
-                    {action: "Power interval (100+ rpm, HR 173 to 180) ", time: 2, unit: "minutes", effort: 300},
-                    {action: "Recover", time: 2, unit: "minutes", effort: 110},
-                    {action: "PREPARE: Build to 100+ rpm, HR 173", time: 1, unit: "minutes", effort: 220},
-                    {action: "Power interval (100+ rpm, HR 173 to 180) ", time: 2, unit: "minutes", effort: 300},
-
-                    {action: "cooldown ", time: 10, unit: "minutes", effort: 100},
-                ]
-            },
-            {
-                "id": "power-intervals-1",
-                "effortMode": "perceived",
-                "title": "Power intervals (1 min)",
-                "intervals": [
-
-                    {action: "spin up", time: 60, unit: "seconds"},
-                    {action: "Warmup", time: 15, unit: "minutes", effort: 3},
-
-                    {action: "PREPARE (1/12): Build to 100+ rpm, HR 173", time: 1, unit: "minutes", effort: 6},
-                    {action: "Power interval (100+ rpm, HR 173 to 180) ", time: 1, unit: "minutes", effort: 9},
-                    {action: "Recover", time: 1, unit: "minutes", effort: 2},
-
-                    {action: "PREPARE (2/12): Build to 100+ rpm, HR 173", time: 1, unit: "minutes", effort: 6},
-                    {action: "Power interval (100+ rpm, HR 173 to 180) ", time: 1, unit: "minutes", effort: 9},
-                    {action: "Recover", time: 1, unit: "minutes", effort: 2},
-
-                    {action: "PREPARE (3/12): Build to 100+ rpm, HR 173", time: 1, unit: "minutes", effort: 6},
-                    {action: "Power interval (100+ rpm, HR 173 to 180) ", time: 1, unit: "minutes", effort: 9},
-                    {action: "Recover", time: 1, unit: "minutes", effort: 2},
-
-                    {action: "PREPARE (4/12): Build to 100+ rpm, HR 173", time: 1, unit: "minutes", effort: 6},
-                    {action: "Power interval (100+ rpm, HR 173 to 180) ", time: 1, unit: "minutes", effort: 9},
-                    {action: "Recover", time: 1, unit: "minutes", effort: 2},
-
-                    {action: "PREPARE (5/12): Build to 100+ rpm, HR 173", time: 1, unit: "minutes", effort: 6},
-                    {action: "Power interval (100+ rpm, HR 173 to 180) ", time: 1, unit: "minutes", effort: 9},
-                    {action: "Recover", time: 1, unit: "minutes", effort: 2},
-
-                    {action: "PREPARE (6/12): Build to 100+ rpm, HR 173", time: 1, unit: "minutes", effort: 6},
-                    {action: "Power interval (100+ rpm, HR 173 to 180) ", time: 1, unit: "minutes", effort: 9},
-                    {action: "Recover", time: 1, unit: "minutes", effort: 2},
-
-                    {action: "PREPARE (7/12): Build to 100+ rpm, HR 173", time: 1, unit: "minutes", effort: 6},
-                    {action: "Power interval (100+ rpm, HR 173 to 180) ", time: 1, unit: "minutes", effort: 9},
-                    {action: "Recover", time: 1, unit: "minutes", effort: 2},
-
-                    {action: "PREPARE (8/12): Build to 100+ rpm, HR 173", time: 1, unit: "minutes", effort: 6},
-                    {action: "Power interval (100+ rpm, HR 173 to 180) ", time: 1, unit: "minutes", effort: 9},
-                    {action: "Recover", time: 1, unit: "minutes", effort: 2},
-
-                    {action: "PREPARE (9/12): Build to 100+ rpm, HR 173", time: 1, unit: "minutes", effort: 6},
-                    {action: "Power interval (100+ rpm, HR 173 to 180) ", time: 1, unit: "minutes", effort: 9},
-                    {action: "Recover", time: 1, unit: "minutes", effort: 2},
-
-                    {action: "PREPARE (10/12): Build to 100+ rpm, HR 173", time: 1, unit: "minutes", effort: 6},
-                    {action: "Power interval (100+ rpm, HR 173 to 180) ", time: 1, unit: "minutes", effort: 9},
-                    {action: "Recover", time: 1, unit: "minutes", effort: 2},
-
-                    {action: "PREPARE (11/12): Build to 100+ rpm, HR 173", time: 1, unit: "minutes", effort: 6},
-                    {action: "Power interval (100+ rpm, HR 173 to 180) ", time: 1, unit: "minutes", effort: 9},
-                    {action: "Recover", time: 1, unit: "minutes", effort: 2},
-
-                    {action: "PREPARE (12/12): Build to 100+ rpm, HR 173", time: 1, unit: "minutes", effort: 6},
-                    {action: "Power interval (100+ rpm, HR 173 to 180) ", time: 1, unit: "minutes", effort: 9},
-
-                    {action: "cooldown ", time: 10, unit: "minutes", effort: 2},
-                ]
-            },
-            {
-                "id": "speed-intervals-30",
-                "effortMode": "hrZone",
-                "title": "Speed intervals (30s)",
-                "intervals": [
-
-                    {action: "Warmup", time: 14, unit: "minutes", effort: 2},
-
-                    {action: "GET READY! Bring RPM to 90, HR to 159", time: 60, unit: "seconds", effort: 3},
-
-                    {action: "MAX EFFORT (HR 180)", time: 30, unit: "seconds", effort: 5},
-                    {action: "Recover", time: 30, unit: "seconds", effort: 1},
-                    {action: "MAX EFFORT (HR 180)", time: 30, unit: "seconds", effort: 5},
-                    {action: "Recover", time: 30, unit: "seconds", effort: 1},
-                    {action: "MAX EFFORT (HR 180)", time: 30, unit: "seconds", effort: 5},
-                    {action: "Recover", time: 30, unit: "seconds", effort: 1},
-                    {action: "MAX EFFORT (HR 180)", time: 30, unit: "seconds", effort: 5},
-                    {action: "Recover", time: 30, unit: "seconds", effort: 1},
-                    {action: "MAX EFFORT (HR 180)", time: 30, unit: "seconds", effort: 5},
-                    {action: "Recover", time: 30, unit: "seconds", effort: 1},
-                    {action: "MAX EFFORT (HR 180)", time: 30, unit: "seconds", effort: 5},
-                    {action: "Recover", time: 30, unit: "seconds", effort: 1},
-                    {action: "MAX EFFORT (HR 180)", time: 30, unit: "seconds", effort: 5},
-                    {action: "Recover", time: 30, unit: "seconds", effort: 1},
-                    {action: "MAX EFFORT (HR 180)", time: 30, unit: "seconds", effort: 5},
-
-                    {action: "Recover", time: 5, unit: "minutes", effort: 1},
-
-                    {action: "MAX EFFORT (HR 180)", time: 30, unit: "seconds", effort: 5},
-                    {action: "Recover", time: 30, unit: "seconds", effort: 1},
-                    {action: "MAX EFFORT (HR 180)", time: 30, unit: "seconds", effort: 5},
-                    {action: "Recover", time: 30, unit: "seconds", effort: 1},
-                    {action: "MAX EFFORT (HR 180)", time: 30, unit: "seconds", effort: 5},
-                    {action: "Recover", time: 30, unit: "seconds", effort: 1},
-                    {action: "MAX EFFORT (HR 180)", time: 30, unit: "seconds", effort: 5},
-                    {action: "Recover", time: 30, unit: "seconds", effort: 1},
-                    {action: "MAX EFFORT (HR 180)", time: 30, unit: "seconds", effort: 5},
-                    {action: "Recover", time: 30, unit: "seconds", effort: 1},
-                    {action: "MAX EFFORT (HR 180)", time: 30, unit: "seconds", effort: 5},
-                    {action: "Recover", time: 30, unit: "seconds", effort: 1},
-                    {action: "MAX EFFORT (HR 180)", time: 30, unit: "seconds", effort: 5},
-                    {action: "Recover", time: 30, unit: "seconds", effort: 1},
-                    {action: "MAX EFFORT (HR 180)", time: 30, unit: "seconds", effort: 5},
-
-                    {action: "Recover", time: 5, unit: "minutes", effort: 1},
-
-                    {action: "MAX EFFORT (HR 180)", time: 30, unit: "seconds", effort: 5},
-                    {action: "Recover", time: 30, unit: "seconds", effort: 1},
-                    {action: "MAX EFFORT (HR 180)", time: 30, unit: "seconds", effort: 5},
-                    {action: "Recover", time: 30, unit: "seconds", effort: 1},
-                    {action: "MAX EFFORT (HR 180)", time: 30, unit: "seconds", effort: 5},
-                    {action: "Recover", time: 30, unit: "seconds", effort: 1},
-                    {action: "MAX EFFORT (HR 180)", time: 30, unit: "seconds", effort: 5},
-                    {action: "Recover", time: 30, unit: "seconds", effort: 1},
-                    {action: "MAX EFFORT (HR 180)", time: 30, unit: "seconds", effort: 5},
-                    {action: "Recover", time: 30, unit: "seconds", effort: 1},
-                    {action: "MAX EFFORT (HR 180)", time: 30, unit: "seconds", effort: 5},
-                    {action: "Recover", time: 30, unit: "seconds", effort: 1},
-                    {action: "MAX EFFORT (HR 180)", time: 30, unit: "seconds", effort: 5},
-                    {action: "Recover", time: 30, unit: "seconds", effort: 1},
-                    {action: "MAX EFFORT (HR 180)", time: 30, unit: "seconds", effort: 5},
-
-                    {action: "Recover", time: 5, unit: "minutes", effort: 1},
-
-                    {action: "MAX EFFORT (HR 180)", time: 30, unit: "seconds", effort: 5},
-                    {action: "Recover", time: 30, unit: "seconds", effort: 1},
-                    {action: "MAX EFFORT (HR 180)", time: 30, unit: "seconds", effort: 5},
-                    {action: "Recover", time: 30, unit: "seconds", effort: 1},
-                    {action: "MAX EFFORT (HR 180)", time: 30, unit: "seconds", effort: 5},
-                    {action: "Recover", time: 30, unit: "seconds", effort: 1},
-                    {action: "MAX EFFORT (HR 180)", time: 30, unit: "seconds", effort: 5},
-                    {action: "Recover", time: 30, unit: "seconds", effort: 1},
-                    {action: "MAX EFFORT (HR 180)", time: 30, unit: "seconds", effort: 5},
-                    {action: "Recover", time: 30, unit: "seconds", effort: 1},
-                    {action: "MAX EFFORT (HR 180)", time: 30, unit: "seconds", effort: 5},
-                    {action: "Recover", time: 30, unit: "seconds", effort: 1},
-                    {action: "MAX EFFORT (HR 180)", time: 30, unit: "seconds", effort: 5},
-                    {action: "Recover", time: 30, unit: "seconds", effort: 1},
-                    {action: "MAX EFFORT (HR 180)", time: 30, unit: "seconds", effort: 5},
-
-                    {action: "cooldown ", time: 10, unit: "minutes", effort: 1},
-                ]
-            },
-            {
-                "id": "speed-intervals-15",
-                "effortMode": "perceived",
-                "title": "Speed intervals (15s)",
-                "intervals": [
-
-                    {action: "Warmup", time: 14, unit: "minutes", effort: 3},
-
-                    {action: "GET READY! Bring RPM to 90, HR to 159", time: 60, unit: "seconds", effort: 5},
-
-                    {action: "MAX EFFORT 1/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 2/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 3/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 4/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 5/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 6/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 7/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 8/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 9/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 10/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 11/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 12/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 13/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 14/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 15/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 16/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 17/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 18/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 19/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 20/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-
-                    {action: "Recover - 2 sets to go!", time: 5, unit: "minutes", effort: 2},
-
-                    {action: "MAX EFFORT 1/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 2/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 3/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 4/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 5/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 6/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 7/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 8/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 9/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 10/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 11/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 12/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 13/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 14/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 15/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 16/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 17/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 18/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 19/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 20/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-
-                    {action: "Recover - 1 set to go!", time: 5, unit: "minutes", effort: 2},
-
-                    {action: "MAX EFFORT 1/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 2/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 3/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 4/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 5/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 6/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 7/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 8/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 9/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 10/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 11/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 12/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 13/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 14/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 15/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 16/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 17/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 18/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 19/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-                    {action: "Recover", time: 15, unit: "seconds", effort: 2},
-                    {action: "MAX EFFORT 20/20 (HR 180)", time: 15, unit: "seconds", effort: 10},
-
-                    {action: "cooldown ", time: 10, unit: "minutes", effort: 2},
-                ]
-            },
-        ];
+    const reportError = factory.errorReporter();
+
+    const db = factory.database().catch((error) => {
+        reportError('Workouts cannot be stored in this browser, so changes will be lost on reload. ' + error);
+        return memoryDb({ [STORE]: seeded() });
+    });
+
+    // one write at a time, so each sees the library as the last one left it; reads wait for them too, so a view
+    // opened straight after an edit still sees it.
+    let writes = Promise.resolve();
+    const queued = (fn) => {
+        const write = writes.then(fn);
+        writes = write.catch(() => {});
+        return write;
     };
 
-    const workouts = factory.enumerable(fetchWorkouts());
+    const all = () => db
+        .then((d) => d.getAll(STORE))
+        .then((workouts) => workouts.sort((a, b) => a.order - b.order));
+
+    // keeps an existing workout in its place in the library, or adds a new one to the end.
+    const place = (workout, library) => {
+        const index = library.findIndex((w) => w.id === workout.id);
+        if (index === -1) {
+            const order = library.reduce((max, w) => Math.max(max, w.order), -1) + 1;
+            library.push({...workout, order});
+        } else {
+            library[index] = {...workout, order: library[index].order};
+        }
+        return library.find((w) => w.id === workout.id);
+    };
 
     return {
-        getWorkouts: () => {
-            return tools.clone(workouts);
-        },
-        getWorkout: (id) => {
-            const workout = workouts.searchBy('id', id);
-            return tools.clone(workout);
-        },
-        // In-memory only for now, so changes last until the page is reloaded.
+        getWorkouts: () => writes.then(all).then((workouts) => workouts.map(unordered)),
+        getWorkout: (id) => writes
+            .then(() => db)
+            .then((d) => d.get(STORE, id))
+            .then((workout) => workout ? unordered(workout) : false),
         saveWorkout: (workout) => {
-            const saved = tools.clone(workout);
-            const index = workouts.findIndex((w) => w.id === saved.id);
-            if (index === -1) {
-                workouts.push(saved);
-            } else {
-                workouts[index] = saved;
+            // copied now, so the caller can keep editing while this is saved.
+            const saved = structuredClone(workout);
+            return queued(() => all().then((library) => db.then((d) => d.put(STORE, place(saved, library)))));
+        },
+        deleteWorkout: (id) => queued(() => db.then((d) => d.delete(STORE, id))),
+        exportWorkouts: () => writes.then(all).then((workouts) => ({
+            version: VERSION,
+            exportedAt: new Date().toISOString(),
+            workouts: workouts.map(unordered),
+        })),
+        // merges by id: workouts that are already stored are replaced, new ones are added, and none are removed.
+        importWorkouts: (data) => {
+            if (!data || !Array.isArray(data.workouts)) {
+                return Promise.reject(new Error('This file is not an interval timer export.'));
             }
-        }
+            if (data.version > VERSION) {
+                return Promise.reject(new Error('This file was exported by a newer version of the app.'));
+            }
+            const valid = data.workouts.filter(isWorkout);
+            return queued(() => all()
+                .then((library) => db.then((d) => d.putAll(STORE, valid.map((w) => place(unordered(w), library))))))
+                .then(() => ({ imported: valid.length, skipped: data.workouts.length - valid.length }));
+        },
     };
 };

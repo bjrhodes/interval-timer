@@ -11,17 +11,27 @@ describe('Factory', () => {
             expect(f.store('workout')).toBe(f.store('workout'));
         });
 
-        it('shares saved changes between callers, e.g. the edit and list views', () => {
+        // jsdom has no IndexedDB, so this runs against the store's in-memory fallback.
+        it('shares saved changes between callers, e.g. the edit and list views', async () => {
             const f = factory();
-            const edited = f.store('workout').getWorkout('threshold-ladder');
+            const edited = await f.store('workout').getWorkout('threshold-ladder');
             edited.title = 'Renamed';
-            f.store('workout').saveWorkout(edited);
+            await f.store('workout').saveWorkout(edited);
 
-            expect(f.store('workout').getWorkout('threshold-ladder').title).toBe('Renamed');
+            expect((await f.store('workout').getWorkout('threshold-ladder')).title).toBe('Renamed');
         });
 
         it('keeps separate factories separate', () => {
             expect(factory().store('workout')).not.toBe(factory().store('workout'));
+        });
+    });
+
+    describe('database', () => {
+        it('opens one connection for every caller', () => {
+            const f = factory();
+            const db = f.database();
+            db.catch(() => {});
+            expect(f.database()).toBe(db);
         });
     });
 });

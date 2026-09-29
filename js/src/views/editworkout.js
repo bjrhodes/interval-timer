@@ -18,9 +18,9 @@ export const editWorkout = (el, state, reportError, factory) => {
         };
     let workout;
 
-    const loadWorkout = () => {
+    const loadWorkout = async () => {
         const params = router.parameters();
-        const found = params.length >= 2 && workoutStore.getWorkout(params[1]);
+        const found = params.length >= 2 && await workoutStore.getWorkout(params[1]);
 
         if (found) {
             found.intervals = (found.intervals || []).filter((val) => val);
@@ -30,8 +30,11 @@ export const editWorkout = (el, state, reportError, factory) => {
         return {id: 'workout-' + Date.now(), title: '', effortMode: effort.defaultMode, intervals: []};
     };
 
+    // the view's copy is the one being edited, so this needn't be waited on.
     const save = () => {
-        workoutStore.saveWorkout(workout);
+        workoutStore.saveWorkout(workout).catch((error) => {
+            reportError('Could not save the workout. ' + error);
+        });
     };
 
     const hasEfforts = () => {
@@ -211,7 +214,7 @@ export const editWorkout = (el, state, reportError, factory) => {
         removeHandlers();
     };
 
-    const setup = () => {
+    const setup = async () => {
         els.name = el.querySelector('#workout-name');
         els.start = el.querySelector('.edit-workout__start');
         els.summary = el.querySelector('.edit-workout__summary');
@@ -222,7 +225,7 @@ export const editWorkout = (el, state, reportError, factory) => {
         els.newUnits = el.querySelector('#new-interval-units');
         els.newEffort = el.querySelector('.interval-list__actions-effort');
 
-        workout = loadWorkout();
+        workout = await loadWorkout();
         render();
         attachHandlers();
         el.style.display = 'block';

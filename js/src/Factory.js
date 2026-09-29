@@ -2,7 +2,7 @@ import { AppController } from './AppController.js';
 import { Hashed } from './routers/hashed.js';
 import { Plain } from './routers/plain.js';
 import { Url } from './routers/url.js';
-import { workout } from './stores/workout-store.js';
+import { upgrade, workout } from './stores/workout-store.js';
 import { session } from './timer/session.js';
 import { Beep } from './utilities/beep.js';
 import { Classy } from './utilities/classy.js';
@@ -10,6 +10,7 @@ import { effort } from './utilities/effort.js';
 import { enumerable as makeEnumerable } from './utilities/enumerable.js';
 import { ErrorReporter } from './utilities/ErrorReporter.js';
 import { format as makeFormat } from './utilities/format.js';
+import { openDb } from './utilities/idb.js';
 import { summarise } from './utilities/summary.js';
 import { tools } from './utilities/tools.js';
 import { WakeLock } from './utilities/wake-lock.js';
@@ -68,6 +69,17 @@ export const Factory = (config, state, document) => {
         return cached.stores[storeName];
     };
 
+    // one connection, shared by every store.
+    const database = () => {
+        if (!cached.db) {
+            cached.db = openDb(window, 'interval-timer', 1, upgrade);
+            // asks the browser not to clear storage under pressure, e.g. Safari after a week without a visit.
+            window.navigator.storage?.persist?.().catch(() => {});
+        }
+
+        return cached.db;
+    };
+
     const enumerable = (arr) => {
         return makeEnumerable(arr);
     };
@@ -81,6 +93,7 @@ export const Factory = (config, state, document) => {
         controller: controller,
         router:     router,
         store:      store,
+        database:   database,
         enumerable: enumerable,
         classy:     () => classy,
         session:    () => session,
@@ -92,6 +105,7 @@ export const Factory = (config, state, document) => {
         url:        () => url,
         document:   () => document,
         wakeLock:   () => wakeLock,
+        errorReporter: () => errorReporter.reporter,
     };
 
     // need to wrangle this a little so we can inject self into builders.

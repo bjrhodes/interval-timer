@@ -328,6 +328,23 @@ body[data-view="timer"] > .container {
     margin: 0.5rem 0 1.25rem;
 }
 
+.page-header__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+/* the file input inside is visually hidden, so show its focus on the button-like label instead. */
+.workouts__import:has(:focus-visible) {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+}
+
+.workouts__status:empty {
+    display: none;
+}
+
 .page-header__title {
     font-size: 1.75rem;
     font-weight: 800;

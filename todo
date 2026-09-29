@@ -11,11 +11,8 @@
 
 ===
 
-import / export (JSON)
-
-===
-
-Save to cloud
+Save to cloud. Until then, share links would move workouts between devices with no server: compress a workout with
+CompressionStream, base64url it into `#import/<data>`, and the user sends the link to themselves (AirDrop, Messages).
 
 # Ideas for the future
 

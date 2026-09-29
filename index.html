@@ -60,8 +60,16 @@
         <section id="workouts">
             <div class="page-header">
                 <h1 class="page-header__title">Workouts</h1>
-                <a href="#editworkout" data-route="editworkout" class="btn btn--primary workouts__add">New workout</a>
+                <div class="page-header__actions">
+                    <a href="#editworkout" data-route="editworkout" class="btn btn--primary workouts__add">New workout</a>
+                    <button type="button" class="btn workouts__export">Export</button>
+                    <label class="btn workouts__import">
+                        Import
+                        <input type="file" class="visuallyhidden workouts__import-file" accept=".json,application/json">
+                    </label>
+                </div>
             </div>
+            <p class="workouts__status muted" role="status" aria-live="polite"></p>
             <ul class="workout-list">
                 <li>Loading workouts...</li>
             </ul>

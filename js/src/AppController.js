@@ -1,7 +1,9 @@
 export const AppController = (factory) => {
-    let view;
+    let view,
+        transitions = Promise.resolve();
     const router = factory.router(),
-        document = factory.document();
+        document = factory.document(),
+        reportError = factory.errorReporter();
 
     // lets the stylesheet lay out the shell per view, e.g. hiding the nav behind the timer.
     const renderShell = (to) => {
@@ -15,14 +17,22 @@ export const AppController = (factory) => {
         });
     };
 
-    const transition = (to) => {
+    const swap = async (to) => {
         if (view) {
             view.teardown();
         }
         renderShell(to);
         view = factory.view(to);
-        view.setup();
+        await view.setup();
         window.scrollTo(0, 0);
+    };
+
+    // views load their data asynchronously, so each transition waits for the last, stopping a slow setup from
+    // finishing after the next view has already taken over.
+    const transition = (to) => {
+        transitions = transitions.then(() => swap(to)).catch((error) => {
+            reportError('Could not show the ' + to.view + ' view. ' + error);
+        });
     };
 
     return {

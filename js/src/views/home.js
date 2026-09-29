@@ -12,8 +12,8 @@ export const home = (el, state, reportError, factory) => {
 
     const upcomingCount = 3;
 
-    const loadWorkouts = () => {
-        const stored = workoutStore.getWorkouts();
+    const loadWorkouts = async () => {
+        const stored = await workoutStore.getWorkouts();
         return (stored instanceof Array ? stored : [])
             .filter((workout) => workout.intervals && workout.intervals.length)
             .map((workout) => ({...workout, ...summarise(workout)}));
@@ -76,8 +76,8 @@ export const home = (el, state, reportError, factory) => {
         el.style.display = '';
     };
 
-    const setup = () => {
-        const workouts = loadWorkouts();
+    const setup = async () => {
+        const workouts = await loadWorkouts();
         el.querySelector('.next-workout__body').innerHTML = renderNext(workouts[0]);
         el.querySelector('.upcoming-list').innerHTML = renderUpcoming(workouts.slice(1, 1 + upcomingCount));
         el.querySelector('.library-stats').innerHTML = renderLibrary(workouts);

@@ -31,9 +31,9 @@ export const timer = (el, state, reportError, factory) => {
         ticker = null,
         shownSeconds = null;
 
-    const loadWorkout = () => {
+    const loadWorkout = async () => {
         const params = router.parameters();
-        return (params.length >= 2 && workoutStore.getWorkout(params[1])) || null;
+        return (params.length >= 2 && await workoutStore.getWorkout(params[1])) || null;
     };
 
     const describeEffort = (interval) => {
@@ -174,8 +174,8 @@ export const timer = (el, state, reportError, factory) => {
         window.document.removeEventListener('keydown', keyed);
     };
 
-    const setup = () => {
-        details = loadWorkout();
+    const setup = async () => {
+        details = await loadWorkout();
         const intervals = details ? details.intervals : [];
 
         if (!intervals || typeof(intervals.forEach) !== 'function') {
