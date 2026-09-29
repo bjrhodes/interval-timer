@@ -1,10 +1,9 @@
 /**
- * @todo this class has got a bit big. I'd like to make this the view controller,
- * simply despatching to sub modules.
- *
+ * Drives a workout session: the session decides what state the workout is in, this view feeds it clicks and
+ * animation frames, then turns each change of state into DOM updates and beeps.
  */
 export const timer = (el, state, reportError, factory) => {
-    const countdown = factory.countdown(),
+    const session = factory.session(),
         beep = factory.beep(),
         format = factory.format(),
         classy = factory.classy(),
@@ -17,111 +16,112 @@ export const timer = (el, state, reportError, factory) => {
             nextTime: null,
             status: null
         };
-    let intervals = [],
-        timerRunning = false;
+    let workout,
+        frame = null,
+        shownSeconds = null;
 
-    const setupInterval = (now, next) => {
-        if (!now || typeof(now.time) === 'undefined') {
-            return;
-        }
-        els.time.innerHTML = format.durationAsClock(format.timeInSeconds(now.time, now.unit));
-        els.action.innerHTML = now.action;
-
-        if (next.action && next.time && next.unit) {
-            els.nextAction.innerHTML = next.action;
-            els.nextTime.innerHTML = '(' + format.durationAsClock(format.timeInSeconds(next.time, next.unit)) + ')';
-        } else {
-            els.nextAction.innerHTML = "Completed";
-            els.nextTime.innerHTML = '-';
-        }
-    };
-
-    const findInterval = () => {
-        if (intervals.length === 0) {
-            els.nextAction.innerHTML = "-";
-            els.action.innerHTML = '-';
-            els.time.innerHTML = 'FIN';
-        }
-        const now = intervals.shift();
-        const next = intervals.length ? intervals[0] : false;
-        return {now: now, next: next};
-    };
-
-    const nextInterval = () => {
-        const nextUp = findInterval();
-        setupInterval(nextUp.now, nextUp.next);
-        initTimer(nextUp.now);
-        countdown.start();
-    };
-
-    const initTimer = (interval) => {
-        if (!interval || typeof(interval.time) === 'undefined') {
-            return;
-        }
-        countdown.init(format.timeInSeconds(interval.time, interval.unit), countdownComplete, countdownUpdated);
-    };
-
-    /**
-     *
-     * @return {array} [description]
-     */
     const getIntervals = () => {
         const params = router.parameters();
 
         if (params.length < 2) {
             return [];
         }
-        const workout = workoutStore.getWorkout(params[1]);
-        return workout.intervals || [];
+        const found = workoutStore.getWorkout(params[1]);
+        return found.intervals || [];
     };
 
-    const countdownComplete = () => {
-        beep();
-        window.setTimeout(beep, 200);
-        nextInterval();
+    const renderIntervals = () => {
+        const now = session.current(workout),
+            next = session.next(workout);
+
+        if (!now) {
+            els.time.innerHTML = 'FIN';
+            els.action.innerHTML = '-';
+            els.nextAction.innerHTML = '-';
+            els.nextTime.innerHTML = '-';
+            return;
+        }
+        els.action.innerHTML = now.action;
+        els.nextAction.innerHTML = next ? next.action : 'Completed';
+        els.nextTime.innerHTML = next ? '(' + format.durationAsClock(next.seconds) + ')' : '-';
     };
 
-    const countdownUpdated = (seconds) => {
-        els.time.innerHTML = format.durationAsClock(seconds);
-        if (seconds <= 5) {
+    const renderStatus = () => {
+        const paused = workout.status === 'ready' || workout.status === 'paused';
+        classy[paused ? 'add' : 'remove'](els.status, 'interval-timer__status--paused');
+    };
+
+    const renderClock = (now) => {
+        if (workout.status === 'finished') {
+            return false;
+        }
+        const seconds = session.secondsLeft(workout, now);
+        if (seconds !== shownSeconds) {
+            els.time.innerHTML = format.durationAsClock(seconds);
+            shownSeconds = seconds;
+            return true;
+        }
+        return false;
+    };
+
+    const render = (prev, now) => {
+        const intervalChanged = prev.index !== workout.index;
+        if (intervalChanged) {
+            renderIntervals();
+            beep();
+            window.setTimeout(beep, 200);
+        }
+        if (prev.status !== workout.status) {
+            renderStatus();
+        }
+        if (renderClock(now) && !intervalChanged && shownSeconds <= 5) {
             beep();
         }
     };
 
-    const playPause = (e) => {
-        if (timerRunning) {
-            countdown.pause();
-            classy.add(els.status, 'interval-timer__status--paused');
-        } else {
-            classy.remove(els.status, 'interval-timer__status--paused');
-            countdown.start();
+    const loop = () => {
+        frame = null;
+        dispatch({type: 'TICK', now: window.performance.now()});
+    };
+
+    const stopLoop = () => {
+        if (frame !== null) {
+            window.cancelAnimationFrame(frame);
+            frame = null;
         }
-        timerRunning = !timerRunning;
+    };
+
+    const dispatch = (event) => {
+        const prev = workout;
+        workout = session.transition(workout, event);
+        // the state only changes between intervals, but the clock moves on every tick.
+        render(prev, event.now);
+        if (workout.status === 'running') {
+            frame = frame === null ? window.requestAnimationFrame(loop) : frame;
+        } else {
+            stopLoop();
+        }
+    };
+
+    const playPause = (e) => {
+        dispatch({type: workout.status === 'running' ? 'PAUSE' : 'START', now: window.performance.now()});
         e.preventDefault();
     };
 
-    const attachHandlers = () => {
-        el.addEventListener('click', playPause);
-    };
-
-    const removeHandlers = () => {
+    const teardown = () => {
+        stopLoop();
+        el.style.display = '';
         el.removeEventListener('click', playPause);
     };
 
-    const teardown = () => {
-        countdown.pause();
-        el.style.display = '';
-        removeHandlers();
-    };
-
     const setup = () => {
-        intervals = getIntervals();
+        const intervals = getIntervals();
 
         if (!intervals || typeof(intervals.forEach) !== 'function') {
             reportError('Timer view could not read intervals.');
         }
-        // Reindex array to make sure it's consecutive. Means we can shorthand some stuff later. http://stackoverflow.com/questions/4759745/javascript-reindexing-an-array
-        intervals = intervals.filter((val) => val);
+        workout = session.create(intervals);
+        shownSeconds = null;
 
         el.style.display = 'block';
 
@@ -131,10 +131,10 @@ export const timer = (el, state, reportError, factory) => {
         els.nextTime = el.querySelector('.next-interval__time');
         els.status = el.querySelector('.interval-timer__status');
 
-        const nextUp = findInterval();
-        setupInterval(nextUp.now, nextUp.next);
-        initTimer(nextUp.now);
-        attachHandlers();
+        renderIntervals();
+        renderStatus();
+        renderClock(0);
+        el.addEventListener('click', playPause);
     };
 
     return {

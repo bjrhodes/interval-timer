@@ -3,9 +3,9 @@ import { Hashed } from './routers/hashed.js';
 import { Plain } from './routers/plain.js';
 import { Url } from './routers/url.js';
 import { workout } from './stores/workout-store.js';
+import { session } from './timer/session.js';
 import { Beep } from './utilities/beep.js';
 import { Classy } from './utilities/classy.js';
-import { Countdown } from './utilities/countdown.js';
 import { Debounce } from './utilities/debounce.js';
 import { effort } from './utilities/effort.js';
 import { enumerable as makeEnumerable } from './utilities/enumerable.js';
@@ -31,7 +31,6 @@ export const Factory = (config, state, document) => {
 
     const beep      = Beep();
     const classy    = Classy(document);
-    const countdown = Countdown();
     const debounce  = Debounce(window);
     const errorReporter = ErrorReporter(window);
     const format    = makeFormat(window);
@@ -82,7 +81,7 @@ export const Factory = (config, state, document) => {
         store:      store,
         enumerable: enumerable,
         classy:     () => classy,
-        countdown:  () => countdown,
+        session:    () => session,
         beep:       () => beep,
         effort:     () => effort,
         format:     () => format,
