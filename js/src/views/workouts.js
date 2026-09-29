@@ -1,12 +1,11 @@
 export const workouts = (el, state, errorReporter, factory) => {
-    let workouts;
     const tools = factory.tools(),
         format = factory.format(),
         url = factory.url(),
         workoutStore = factory.store('workout');
 
     const totalDuration = (intervals) => {
-        if (!(workouts instanceof Array)) {
+        if (!(intervals instanceof Array)) {
             return 'Unknown duration';
         }
         const seconds = intervals.reduce((total, interval) => {
@@ -16,16 +15,13 @@ export const workouts = (el, state, errorReporter, factory) => {
     };
 
     const loadWorkouts = () => {
-        workouts = workoutStore.getWorkouts();
-        if (!(workouts instanceof Array)) {
-            workouts = [];
-        }
-        workouts.forEach((workout) => {
-            workout.editTarget = url.route("editworkout/" + workout.id);
-            workout.startTarget = url.route("timer/" + workout.id);
-            workout.duration = totalDuration(workout.intervals);
-        });
-        return workouts;
+        const stored = workoutStore.getWorkouts();
+        return (stored instanceof Array ? stored : []).map((workout) => ({
+            ...workout,
+            editTarget: url.route("editworkout/" + workout.id),
+            startTarget: url.route("timer/" + workout.id),
+            duration: totalDuration(workout.intervals),
+        }));
     };
 
     const renderItem = (workout) => {
@@ -44,11 +40,7 @@ export const workouts = (el, state, errorReporter, factory) => {
         el.style.display = '';
     };
     const setup = () => {
-        let html = '';
-        const workouts = loadWorkouts();
-        workouts.forEach((workout) => {
-            html += renderItem(workout);
-        });
+        const html = loadWorkouts().map(renderItem).join('');
         el.innerHTML = '<ul class="workout-list">' + html + '</ul>';
         el.style.display = 'block';
     };

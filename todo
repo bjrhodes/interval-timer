@@ -1,4 +1,5 @@
 - See if we can get rid of let's
+- Move core logic to a state machine
 - Make the timer work in the background
 - Make the timer stop the computer from sleeping
 - make the edit links work on list view
@@ -12,6 +13,7 @@
 - make intervals nest so I can repeat intervals, eg (burst, SS, burst, SS, burst) x 4 or nest in the BCI warmup.
 - allow for adding intervals as mins _and_ seconds
 - Can we calc HR zones / power for Steady state / climbing repeat etc?
+- EPIC: Full auto mode - a user answers basic experience (less than an hour, 1-4 hours, over 4 hours per week), does an initial analysis and then we build a program. This will need connectivity
 
 - trigger a lap on the Garmin : https://developer.garmin.com/connect-iq/api-docs/
 

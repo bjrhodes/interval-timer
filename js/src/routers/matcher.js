@@ -6,10 +6,10 @@ export const Matcher = (knownRoutes) => {
      *
      * Prevents fall through routing though, so your routes must be regex-ily unique.
      */
-    knownRoutes = knownRoutes.sortBy('hash').reverse();
+    const routes = knownRoutes.sortBy('hash').reverse();
 
     const findRoute = (requestedRoute, currentId) => {
-        const route = knownRoutes.searchRegexBy('hash', requestedRoute);
+        const route = routes.searchRegexBy('hash', requestedRoute);
         if (route && route.id !== currentId) {
             return route;
         }

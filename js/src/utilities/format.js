@@ -29,21 +29,16 @@ export const format = () => {
 
     const durationAsWords = (seconds) => {
         const times = splitDurations(seconds);
-        let str = '';
+        const parts = [
+            [times.hours, 'hour'],
+            [times.minutes, 'minute'],
+            [times.seconds, 'second'],
+        ];
 
-        if (times.hours) {
-            str += times.hours + ' hour' + (times.hours === 1 ? '' : 's');
-        }
-        if (times.minutes) {
-            str += str.length ? ', ' : '';
-            str += times.minutes + ' minute' + (times.minutes === 1 ? '' : 's');
-        }
-        if (times.seconds) {
-            str += str.length ? ', ' : '';
-            str += times.seconds + ' second' + (times.seconds === 1 ? '' : 's');
-        }
-
-        return str;
+        return parts
+            .filter(([count]) => count)
+            .map(([count, unit]) => count + ' ' + unit + (count === 1 ? '' : 's'))
+            .join(', ');
     };
 
     /**
@@ -52,16 +47,13 @@ export const format = () => {
      * @param  {string} units one of hours, minutes or seconds
      * @return integer time in seconds
      */
-    const timeInSeconds = (time, units) => {
-        switch (units) {
-            case 'hours':
-                time = time * 60;
-                // intentional fallthrough. Should accumulate actions
-            case 'minutes':
-                time = time * 60;
-        }
+    const secondsPerUnit = {
+        hours: 3600,
+        minutes: 60,
+    };
 
-        return time;
+    const timeInSeconds = (time, units) => {
+        return time * (secondsPerUnit[units] || 1);
     };
 
     return {

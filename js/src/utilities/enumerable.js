@@ -1,54 +1,20 @@
 export const enumerable = (arr) => {
     const searchBy = (key, value) => {
-        let found = false;
-
-        const search = (hashmap) => {
-            if (hashmap[key] === value) {
-                found = hashmap;
-                return true;
-            }
-        };
-
-        arr.some(search);
-
-        return found;
+        return arr.find((hashmap) => hashmap[key] === value) || false;
     };
     const searchRegexBy = (key, value) => {
-        let found = false;
-
-        const search = (hashmap) => {
-            const regex = new RegExp(hashmap[key]);
-            if (regex.exec(value)) {
-                found = hashmap;
-                return true;
-            }
-        };
-
-        arr.some(search);
-
-        return found;
+        return arr.find((hashmap) => new RegExp(hashmap[key]).exec(value)) || false;
     };
     const extractBy = (key, value) => {
-        let found = false;
-
-        const search = (hashmap, index) => {
-            if (hashmap[key] === value) {
-                found = hashmap;
-                arr.splice(index, 1);
-                return true;
-            }
-        };
-
-        arr.some(search);
-
-        return found;
+        const index = arr.findIndex((hashmap) => hashmap[key] === value);
+        return index === -1 ? false : arr.splice(index, 1)[0];
     };
 
+    // Returns a sorted copy, leaving the original order intact.
     const sortBy = (key) => {
-        arr = arr.sort((a, b) => {
+        return enumerable([...arr].sort((a, b) => {
             return a[key] < b[key] ? -1 : (a[key] > b[key] ? 1 : 0);
-        });
-        return arr;
+        }));
     };
 
     arr.extractBy = extractBy;
