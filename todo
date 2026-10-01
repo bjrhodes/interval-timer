@@ -1,9 +1,16 @@
+- Sounds don't work on iphonw
+- while we're doing sounds... I'd love a cheesy fanfare at the end
+- Add the interval graph
+- Add speed as an option
 - view not found (404) page
-- Add in some testing
 - make intervals nest so I can repeat intervals, eg (burst, SS, burst, SS, burst) x 4 or nest in the BCI warmup.
 - allow for adding intervals as mins _and_ seconds
 - Can we calc HR zones / power for Steady state / climbing repeat etc?
 - Have preferences for mapping "effort" to power and setting heart rate zones.
+- Want a switch from running / cycling
+- Want a full-audio mode with text-to-speech for running and for deaf users.
+- I liked the audio prompts in TrainerRoad. "Keep your head up" etc. Something like that for longer intervals?
+- On the iphone, can we pause / play music from other apps for longer runs?
 - EPIC: Full auto mode - a user answers basic experience (less than an hour, 1-4 hours, over 4 hours per week), does an initial analysis and then we build a program. This will need connectivity
 
 - trigger a lap on the Garmin : https://developer.garmin.com/connect-iq/api-docs/
