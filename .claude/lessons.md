@@ -17,3 +17,7 @@
 ## Hash URLs to path URLs turns in-page navigation into reloads
 - **What happened:** `page.goto('/#workouts')` only changed the hash; `page.goto('/workouts')` reloads the page, cutting off an IndexedDB save still in flight, so a storage e2e test failed.
 - **Rule:** when a test edits and then moves on, move with the app's own links (or a click), not `goto`, unless a reload is the point of the test.
+
+## Re-read a file the user has open before editing it with a script
+- **What happened:** a scripted edit matched against beep.js as I'd read it earlier, but the user had reformatted it in the meantime. The script's assert caught it, so nothing was overwritten.
+- **Rule:** when a turn or more has passed, check `git diff <file>` before a scripted edit, and build on the user's version. Always assert the old text matches before replacing.

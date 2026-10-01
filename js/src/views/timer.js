@@ -145,6 +145,7 @@ export const timer = (el, state, reportError, factory) => {
     };
 
     const toggle = () => {
+        beep.unlock();
         dispatch({type: workout.status === 'running' ? 'PAUSE' : 'START', now: window.performance.now()});
     };
 

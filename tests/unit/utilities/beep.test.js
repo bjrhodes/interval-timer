@@ -35,6 +35,19 @@ describe('Beep', () => {
         expect(audio.play).toHaveBeenCalledOnce();
     });
 
+    it('unlocks by playing silently, then plays aloud', async () => {
+        const beep = Beep();
+        beep.unlock();
+
+        expect(audio.muted).toBe(true);
+        expect(audio.play).toHaveBeenCalledOnce();
+        await Promise.resolve();
+        expect(audio.pause).toHaveBeenCalledOnce();
+
+        beep();
+        expect(audio.muted).toBe(false);
+    });
+
     it('swallows playback failures', async () => {
         audio.play = vi.fn(() => Promise.reject(new Error('NotAllowedError')));
         const beep = Beep();
