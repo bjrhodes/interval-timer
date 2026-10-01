@@ -20,10 +20,10 @@ describe('Beep', () => {
         vi.unstubAllGlobals();
     });
 
-    it('loads a wav once, up front', () => {
+    it('loads an mp3 once, up front', () => {
         Beep();
         expect(Audio).toHaveBeenCalledOnce();
-        expect(audio.src).toMatch(/^data:audio\/wav;base64,/);
+        expect(audio.src).toMatch(/^data:audio\/mpeg;base64,/);
     });
 
     it('rewinds and plays the sound', () => {
