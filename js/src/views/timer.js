@@ -18,6 +18,7 @@ export const timer = (el, state, reportError, factory) => {
             remaining: null,
             progress: null,
             progressFill: null,
+            graphs: null,
             time: null,
             action: null,
             effort: null,
@@ -60,6 +61,20 @@ export const timer = (el, state, reportError, factory) => {
             : '';
     };
 
+    // one bar per interval, as wide as it is long and as tall as it is hard; the fill's copy shows how far through.
+    const renderGraph = () => {
+        const efforts = workout.intervals.map((interval) => interval.effort);
+        els.graphs.forEach((graph) => {
+            graph.replaceChildren(...workout.intervals.map((interval) => {
+                const bar = window.document.createElement('div');
+                bar.className = 'timer__graph-bar';
+                bar.style.flexGrow = interval.seconds;
+                bar.style.setProperty('--intensity', effort.intensity(details.effortMode, interval.effort, efforts));
+                return bar;
+            }));
+        });
+    };
+
     const renderStatus = () => {
         const paused = workout.status === 'ready' || workout.status === 'paused';
         classy[paused ? 'add' : 'remove'](els.status, 'interval-timer__status--paused');
@@ -69,7 +84,7 @@ export const timer = (el, state, reportError, factory) => {
 
     const renderProgress = (now) => {
         const done = session.progress(workout, now);
-        els.progressFill.style.transform = 'scaleX(' + done + ')';
+        els.progressFill.style.clipPath = 'inset(0 ' + (100 - done * 100) + '% 0 0)';
         els.progress.setAttribute('aria-valuenow', Math.round(done * 100));
         els.remaining.textContent = format.durationAsClock(session.remainingSeconds(workout, now)) + ' left';
     };
@@ -191,6 +206,7 @@ export const timer = (el, state, reportError, factory) => {
         els.remaining = el.querySelector('.timer__remaining');
         els.progress = el.querySelector('.timer__progress');
         els.progressFill = el.querySelector('.timer__progress-fill');
+        els.graphs = el.querySelectorAll('.timer__graph');
         els.time = el.querySelector('.current-interval__timer');
         els.action = el.querySelector('.current-interval__action');
         els.effort = el.querySelector('.current-interval__effort');
@@ -200,6 +216,7 @@ export const timer = (el, state, reportError, factory) => {
 
         els.title.textContent = details ? details.title : '';
         renderIntervals();
+        renderGraph();
         renderStatus();
         renderClock(0);
         el.addEventListener('click', clicked);

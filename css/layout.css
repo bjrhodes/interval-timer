@@ -741,19 +741,37 @@ body[data-view="timer"] > .container {
     font-variant-numeric: tabular-nums;
 }
 
+/* The progress bar is an effort graph: the fill is an accent copy of it, clipped to how far through we are. */
 .timer__progress {
-    height: 0.3rem;
+    position: relative;
+    height: 3rem;
     margin: 0 var(--gutter);
-    border-radius: 999px;
-    background: var(--surface-muted);
-    overflow: hidden;
+}
+
+.timer__graph {
+    display: flex;
+    align-items: flex-end;
+    gap: 1px;
+    height: 100%;
+}
+
+.timer__graph-bar {
+    flex-basis: 0;
+    min-width: 1px;
+    /* even the easiest interval stays visible */
+    height: calc(15% + 85% * var(--intensity, 0));
+    border-radius: 2px 2px 0 0;
+    background: var(--border);
 }
 
 .timer__progress-fill {
-    height: 100%;
+    position: absolute;
+    inset: 0;
+    clip-path: inset(0 100% 0 0);
+}
+
+.timer__progress-fill .timer__graph-bar {
     background: var(--accent);
-    transform: scaleX(0);
-    transform-origin: left;
 }
 
 .current-interval {
@@ -879,6 +897,10 @@ body[data-view="timer"] > .container {
     .timer__bar {
         padding-top: 0.4rem;
         padding-bottom: 0.4rem;
+    }
+
+    .timer__progress {
+        height: 1.75rem;
     }
 
     .current-interval__timer {

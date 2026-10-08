@@ -81,3 +81,26 @@ describe('effort.describe', () => {
         expect(effort.describe('hrZone', 9)).toBeNull();
     });
 });
+
+describe('effort.intensity', () => {
+    it('measures scale levels against the top of the scale', () => {
+        expect(effort.intensity('hrZone', 5, [])).toBe(1);
+        expect(effort.intensity('perceived', 3, [])).toBeCloseTo(0.3);
+    });
+
+    it('spreads numbers across the workout\'s easiest to hardest', () => {
+        const efforts = [115, 160, 165, null];
+        expect(effort.intensity('heartRate', 115, efforts)).toBe(0);
+        expect(effort.intensity('heartRate', 165, efforts)).toBe(1);
+        expect(effort.intensity('heartRate', 160, efforts)).toBeCloseTo(0.9);
+    });
+
+    it('treats a workout of one effort as all-out', () => {
+        expect(effort.intensity('power', 250, [250, 250])).toBe(1);
+    });
+
+    it('is zero for intervals with no effort', () => {
+        expect(effort.intensity('power', null, [250])).toBe(0);
+        expect(effort.intensity('hrZone', undefined, [])).toBe(0);
+    });
+});

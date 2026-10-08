@@ -86,6 +86,15 @@ test.describe('timer', () => {
         await expect(t.progress).toHaveAttribute('aria-valuenow', '50');
     });
 
+    test('graphs each interval\'s effort', async ({ page }) => {
+        const bars = page.locator('.timer__graph').first().locator('.timer__graph-bar');
+
+        await expect(bars).toHaveCount(14);
+        // the 14 minute, Z2 warmup
+        await expect(bars.first()).toHaveCSS('flex-grow', '840');
+        await expect(bars.first()).toHaveCSS('--intensity', '0.4');
+    });
+
     test('plays and pauses with the space bar', async ({ page }) => {
         const t = timer(page);
 

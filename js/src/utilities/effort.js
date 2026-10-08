@@ -91,10 +91,29 @@ const describe = (modeId, value) => {
     return value + ' ' + m.unit;
 };
 
+/**
+ * How hard an effort is, from 0 to 1, for drawing it. Scales measure against their top level; numbers have no
+ * natural top, so they spread across the workout's own easiest to hardest efforts.
+ */
+const intensity = (modeId, value, efforts) => {
+    const m = mode(modeId);
+    if (typeof(value) !== 'number') {
+        return 0;
+    }
+    if (m.type === 'scale') {
+        return value / m.levels[m.levels.length - 1].value;
+    }
+    const numbers = efforts.filter((e) => typeof(e) === 'number'),
+        lowest = Math.min(...numbers),
+        highest = Math.max(...numbers);
+    return highest > lowest ? (value - lowest) / (highest - lowest) : 1;
+};
+
 export const effort = {
     modes: modes,
     defaultMode: defaultMode,
     mode: mode,
     parse: parse,
     describe: describe,
+    intensity: intensity,
 };
