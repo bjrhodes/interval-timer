@@ -1,6 +1,6 @@
-- Sounds don't work on iphonw
 - while we're doing sounds... I'd love a cheesy fanfare at the end
-- Add the interval graph
+    - also the iphone fix didn't fix. Might be a manual one!
+- Need some cache busting!
 - Add speed as an option
 - view not found (404) page
 - make intervals nest so I can repeat intervals, eg (burst, SS, burst, SS, burst) x 4 or nest in the BCI warmup.
