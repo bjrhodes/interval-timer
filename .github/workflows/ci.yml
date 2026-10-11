@@ -73,9 +73,21 @@ jobs:
         env:
           BASE_PATH: ${{ steps.pages.outputs.base_path }}
         run: |
-          mkdir -p _site
-          cp -r index.html css js img *.png favicon.ico \
+          # css and js go in a folder per version, so a deploy can never be served a mix of cached old and new files.
+          VERSION="${GITHUB_SHA::7}"
+          mkdir -p "_site/${VERSION}"
+          cp -r index.html img *.png favicon.ico \
                 browserconfig.xml crossdomain.xml humans.txt robots.txt _site/
+          cp -r css js "_site/${VERSION}/"
+          sed -i -e "s|href=\"css/|href=\"${VERSION}/css/|" \
+                 -e "s|src=\"js/main.js\"|src=\"${VERSION}/js/main.js\"|" \
+                 -e "s|<meta name=\"app-version\" content=\"\">|<meta name=\"app-version\" content=\"${VERSION}\">|" \
+                 _site/index.html
+          ! grep -qE "href=\"css/|src=\"js/" _site/index.html
+          grep -q "src=\"${VERSION}/js/main.js\"" _site/index.html
+          grep -q "<meta name=\"app-version\" content=\"${VERSION}\">" _site/index.html
+          # open tabs compare this against their own version, and reload when it differs.
+          printf '%s' "${VERSION}" > _site/version.txt
           # base_path is e.g. "/interval-timer", or empty for a root/custom domain.
           sed -i "s|<base href=\"/\">|<base href=\"${BASE_PATH}/\">|" _site/index.html
           grep -q "<base href=\"${BASE_PATH}/\">" _site/index.html

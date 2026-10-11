@@ -11,6 +11,7 @@ import { format as makeFormat } from './utilities/format.js';
 import { openDb } from './utilities/idb.js';
 import { summarise } from './utilities/summary.js';
 import { tools } from './utilities/tools.js';
+import { UpdateCheck } from './utilities/update-check.js';
 import { WakeLock } from './utilities/wake-lock.js';
 import { editWorkout } from './views/editworkout.js';
 import { home } from './views/home.js';
@@ -35,6 +36,9 @@ export const Factory = (config, state, document) => {
     const errorReporter = ErrorReporter(window);
     const format    = makeFormat(window);
     const wakeLock  = WakeLock(window);
+
+    // never reload under a running workout, or before an edit has saved.
+    UpdateCheck(window, () => ['timer', 'editWorkout'].includes(document.body.getAttribute('data-view')));
 
     // just hate this clunky syntax...
     const getEl = (id) => {

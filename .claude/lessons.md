@@ -21,3 +21,7 @@
 ## Re-read a file the user has open before editing it with a script
 - **What happened:** a scripted edit matched against beep.js as I'd read it earlier, but the user had reformatted it in the meantime. The script's assert caught it, so nothing was overwritten.
 - **Rule:** when a turn or more has passed, check `git diff <file>` before a scripted edit, and build on the user's version. Always assert the old text matches before replacing.
+
+## Stop background servers by port, not by command line
+- **What happened:** `pkill -f "http-server <dir>"` missed a server started with `npx`, because the process runs as `node …` with different arguments, so it kept running.
+- **Rule:** after a test run, stop a server with `lsof -ti :<port> | xargs kill`, then check the port is free.
