@@ -3,7 +3,7 @@ import { Router } from './routers/router.js';
 import { preferences as preferenceStore, upgrade as upgradePreferences } from './stores/preferences-store.js';
 import { upgrade as upgradeWorkouts, workout } from './stores/workout-store.js';
 import { session } from './timer/session.js';
-import { Beep } from './utilities/beep.js';
+import { Beep, sounds } from './utilities/beep.js';
 import { Classy } from './utilities/classy.js';
 import { conversions } from './utilities/conversions.js';
 import { effort } from './utilities/effort.js';
@@ -103,6 +103,7 @@ export const Factory = (config, state, document) => {
         classy:     () => classy,
         session:    () => session,
         beep:       () => beep,
+        sounds:     () => sounds,
         effort:     () => effort,
         conversions: () => conversions,
         summarise:  () => summarise,

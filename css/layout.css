@@ -710,7 +710,8 @@ body[data-view="timer"] > .container {
     font-size: 0.9rem;
 }
 
-.preferences__unit {
+.preferences__unit,
+.preferences__beep {
     max-width: 12rem;
 }
 

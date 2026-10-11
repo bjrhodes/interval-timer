@@ -133,8 +133,7 @@ export const timer = (el, state, reportError, factory) => {
         const intervalChanged = prev.index !== workout.index;
         if (intervalChanged) {
             renderIntervals();
-            beep();
-            window.setTimeout(beep, 200);
+            beep.double();
         }
         if (prev.status !== workout.status) {
             renderStatus();
@@ -221,6 +220,7 @@ export const timer = (el, state, reportError, factory) => {
     const setup = async () => {
         details = await loadWorkout();
         prefs = await preferenceStore.get();
+        beep.use(prefs.beep);
         if (details) {
             details.effortMode = effort.mode(details.effortMode).id;
         }

@@ -16,6 +16,8 @@ test.describe('timer', () => {
     test.beforeEach(async ({ page }) => {
         await page.clock.install();
         await page.goto('/timer/threshold-ladder');
+        // setup is async, and its listeners go on with the title, so wait for it before any click or key press.
+        await expect(page.locator('.timer__title')).toHaveText('Threshold Ladder');
     });
 
     test('waits, paused, until clicked', async ({ page }) => {
@@ -153,9 +155,10 @@ test('keeps counting and beeping when animation frames stop, as in a background 
     await page.addInitScript(() => {
         window.requestAnimationFrame = () => 0;
         window.beeps = 0;
-        HTMLMediaElement.prototype.play = function () {
+        const start = OscillatorNode.prototype.start;
+        OscillatorNode.prototype.start = function (...args) {
             window.beeps += 1;
-            return Promise.resolve();
+            return start.apply(this, args);
         };
     });
     await page.goto('/timer/threshold-ladder');

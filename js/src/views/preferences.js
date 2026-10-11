@@ -1,12 +1,14 @@
 /**
  * Effort conversions: a peak from a test per section, which becomes a curve of targets per level of perceived effort.
- * Advanced shows the curve itself for editing.
+ * Advanced shows the curve itself for editing. Then the beep the timer plays.
  */
 export const preferences = (el, state, reportError, factory) => {
     const tools = factory.tools(),
         effort = factory.effort(),
         conversions = factory.conversions(),
         preferenceStore = factory.store('preferences'),
+        beep = factory.beep(),
+        sounds = factory.sounds(),
         sections = [
             {id: 'heartRate', title: 'Heart rate', peak: 'Max heart rate',
                 help: 'Your maximum heart rate, e.g. from a max heart rate test.'},
@@ -103,8 +105,24 @@ export const preferences = (el, state, reportError, factory) => {
         '</section>';
     };
 
+    const renderBeep = () => {
+        const e = tools.escapeHtml,
+            chosen = sounds[prefs.beep] ? prefs.beep : 'softBlip';
+        return '<section class="panel">' +
+            '<h2 class="panel__title">Beep</h2>' +
+            '<p class="muted preferences__help">The sound for the countdown and each new interval.</p>' +
+            '<div class="field">' +
+                '<label class="block-label" for="beep-sound">Sound</label>' +
+                '<select id="beep-sound" class="input select preferences__beep">' +
+                    Object.entries(sounds).map(([id, sound]) => '<option value="' + e(id) + '"' +
+                        (id === chosen ? ' selected' : '') + '>' + e(sound.name) + '</option>').join('') +
+                '</select>' +
+            '</div>' +
+        '</section>';
+    };
+
     const render = () => {
-        container.innerHTML = sections.map(renderSection).join('');
+        container.innerHTML = sections.map(renderSection).join('') + renderBeep();
     };
 
     const changePeak = (id, input) => {
@@ -163,10 +181,23 @@ export const preferences = (el, state, reportError, factory) => {
         render();
     };
 
+    // plays the choice, so it can be heard before a workout.
+    const changeBeep = (input) => {
+        prefs.beep = input.value;
+        save();
+        beep.unlock();
+        beep.use(prefs.beep);
+        beep();
+    };
+
     const changed = (e) => {
         const target = e.target,
             item = target.closest('.preferences__section'),
             id = item && item.getAttribute('data-section');
+        if (target.classList.contains('preferences__beep')) {
+            changeBeep(target);
+            return;
+        }
         if (!id) {
             return;
         }

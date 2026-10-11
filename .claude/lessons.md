@@ -29,3 +29,7 @@
 ## Throwaway Playwright specs outside the repo can't resolve packages
 - **What happened:** a check spec in the scratchpad failed with "Cannot find package '@playwright/test'", because Node resolves imports from the spec's own folder.
 - **Rule:** import it by absolute path (`<repo>/node_modules/@playwright/test/index.mjs`), and use a scratchpad config that spreads the repo's config with its own `testDir`.
+
+## Wait for a view's async setup before interacting in e2e tests
+- **What happened:** removing the embedded MP3 made the page's `load` event fire sooner, so `page.goto` returned before the timer's async setup had attached its keydown listener, and a space-bar test failed. The slow audio load had hidden the race.
+- **Rule:** after `goto`, wait for something the view renders alongside its listeners (e.g. the timer title) before clicking or pressing keys. When comparing against master in a worktree, compare on the same disk; timing differs across volumes.

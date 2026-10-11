@@ -84,3 +84,33 @@ test('converts targets when the editor switches to a mapped mode', async ({ page
     await expect(page.getByRole('radio', { name: 'Power' })).toBeChecked();
     await expect(page.locator('#interval-effort-1')).toHaveValue('192');
 });
+
+test('plays the chosen beep, remembers it, and the timer beeps with it', async ({ page }) => {
+    await page.clock.install();
+    await page.addInitScript(() => {
+        window.tones = [];
+        const start = OscillatorNode.prototype.start;
+        OscillatorNode.prototype.start = function (...args) {
+            window.tones.push(Math.round(this.frequency.value));
+            return start.apply(this, args);
+        };
+    });
+    const tones = () => page.evaluate(() => window.tones);
+
+    await page.goto('/preferences');
+    const sound = page.getByLabel('Sound');
+    await expect(sound).toHaveValue('softBlip');
+    await sound.selectOption('Bell');
+    // the bell is two tones, the second a little under three times the first.
+    await expect.poll(tones).toEqual([1046, 2887]);
+
+    await page.reload();
+    await expect(sound).toHaveValue('bell');
+
+    // the first interval of the threshold ladder ends at 14:00, with a countdown beep in each of its last five seconds.
+    await page.goto('/timer/threshold-ladder');
+    await page.locator('#timer').click();
+    await page.clock.fastForward('13:58');
+    await expect.poll(tones).toContain(1046);
+    expect((await tones()).every((hz) => hz === 1046 || hz === 2887)).toBe(true);
+});

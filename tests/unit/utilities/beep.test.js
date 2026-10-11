@@ -1,18 +1,29 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Beep } from '../../../js/src/utilities/beep.js';
+import { Beep, sounds } from '../../../js/src/utilities/beep.js';
+
+const ramp = () => ({exponentialRampToValueAtTime: vi.fn(), linearRampToValueAtTime: vi.fn()});
 
 describe('Beep', () => {
-    let audio;
+    let tones, volumes;
 
     beforeEach(() => {
-        audio = {
-            currentTime: 0.5,
-            pause: vi.fn(),
-            play: vi.fn(() => Promise.resolve()),
-        };
-        vi.stubGlobal('Audio', vi.fn(function (src) {
-            audio.src = src;
-            return audio;
+        tones = [];
+        volumes = [];
+        vi.stubGlobal('AudioContext', vi.fn(function () {
+            this.currentTime = 2;
+            this.destination = {};
+            this.resume ??= vi.fn(() => Promise.resolve());
+        }));
+        vi.stubGlobal('OscillatorNode', vi.fn(function (ctx, options) {
+            Object.assign(this, options, {start: vi.fn(), stop: vi.fn(), frequency: ramp()});
+            this.hz = options.frequency;
+            this.connect = vi.fn((node) => node);
+            tones.push(this);
+        }));
+        vi.stubGlobal('GainNode', vi.fn(function () {
+            this.gain = ramp();
+            this.connect = vi.fn();
+            volumes.push(this);
         }));
     });
 
@@ -20,39 +31,71 @@ describe('Beep', () => {
         vi.unstubAllGlobals();
     });
 
-    it('loads an mp3 once, up front', () => {
+    it('waits for a beep or an unlock before making an audio context', () => {
         Beep();
-        expect(Audio).toHaveBeenCalledOnce();
-        expect(audio.src).toMatch(/^data:audio\/mpeg;base64,/);
+        expect(AudioContext).not.toHaveBeenCalled();
     });
 
-    it('rewinds and plays the sound', () => {
+    it('plays a soft blip by default: one short tone that fades out', () => {
         const beep = Beep();
         beep();
 
-        expect(audio.pause).toHaveBeenCalled();
-        expect(audio.currentTime).toBe(0);
-        expect(audio.play).toHaveBeenCalledOnce();
+        const [tone] = tones;
+        const ctx = AudioContext.mock.instances[0];
+        expect(tones).toHaveLength(1);
+        expect(tone).toMatchObject({type: 'sine', hz: sounds.softBlip.frequency});
+        expect(tone.connect).toHaveBeenCalledWith(volumes[0]);
+        expect(volumes[0].connect).toHaveBeenCalledWith(ctx.destination);
+        expect(tone.start).toHaveBeenCalledWith(2);
+        expect(tone.stop).toHaveBeenCalledWith(2.18);
+        expect(volumes[0].gain.exponentialRampToValueAtTime).toHaveBeenLastCalledWith(0.0001, 2.18);
     });
 
-    it('unlocks by playing silently, then plays aloud', async () => {
+    it('plays the chosen sound, with its second tone, and falls back to the soft blip for an unknown one', () => {
+        const beep = Beep();
+        beep.use('bell');
+        beep();
+        expect(tones.map((tone) => tone.hz)).toEqual([1046, 1046 * 2.76]);
+        expect(volumes[1].gain.exponentialRampToValueAtTime).toHaveBeenCalledWith(0.4 * 0.35, 2.003);
+
+        beep.use('nonsense');
+        beep();
+        expect(tones[2].hz).toBe(sounds.softBlip.frequency);
+    });
+
+    it('fades and bends the pitch as the sound asks', () => {
+        const beep = Beep();
+        beep.use('digitalWatch');
+        beep();
+        expect(volumes[0].gain.linearRampToValueAtTime).toHaveBeenCalledWith(0, 2.06);
+
+        beep.use('woodblock');
+        beep();
+        expect(tones[1].frequency.exponentialRampToValueAtTime).toHaveBeenCalledWith(840, 2.07);
+    });
+
+    it('spaces a double beep by the sound\'s gap', () => {
+        const beep = Beep();
+        beep.use('retro');
+        beep.double();
+        expect(tones.map((tone) => tone.start.mock.calls[0][0])).toEqual([2, 2, 2.14, 2.14]);
+    });
+
+    it('unlocks and beeps through one audio context', () => {
         const beep = Beep();
         beep.unlock();
-
-        expect(audio.muted).toBe(true);
-        expect(audio.play).toHaveBeenCalledOnce();
-        await Promise.resolve();
-        expect(audio.pause).toHaveBeenCalledOnce();
-
         beep();
-        expect(audio.muted).toBe(false);
+        beep();
+
+        expect(AudioContext).toHaveBeenCalledOnce();
+        expect(AudioContext.mock.instances[0].resume).toHaveBeenCalledOnce();
+        expect(tones).toHaveLength(2);
     });
 
-    it('swallows playback failures', async () => {
-        audio.play = vi.fn(() => Promise.reject(new Error('NotAllowedError')));
+    it('swallows a refused unlock', async () => {
+        AudioContext.prototype.resume = () => Promise.reject(new Error('NotAllowedError'));
         const beep = Beep();
-
-        expect(() => beep()).not.toThrow();
+        beep.unlock();
         // let the rejected promise settle; an unhandled rejection would fail the run.
         await Promise.resolve();
     });
