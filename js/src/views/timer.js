@@ -8,13 +8,16 @@ export const timer = (el, state, reportError, factory) => {
     const session = factory.session(),
         beep = factory.beep(),
         effort = factory.effort(),
+        conversions = factory.conversions(),
         format = factory.format(),
         classy = factory.classy(),
         router = factory.router(),
         wakeLock = factory.wakeLock(),
         workoutStore = factory.store('workout'),
+        preferenceStore = factory.store('preferences'),
         els = {
             title: null,
+            mode: null,
             remaining: null,
             progress: null,
             progressFill: null,
@@ -27,6 +30,9 @@ export const timer = (el, state, reportError, factory) => {
             status: null
         };
     let details,
+        prefs,
+        // the mode targets are shown in, which may be converted from the one the workout was planned in.
+        displayMode,
         workout,
         frame = null,
         ticker = null,
@@ -37,8 +43,10 @@ export const timer = (el, state, reportError, factory) => {
         return (params.length >= 2 && await workoutStore.getWorkout(params[1])) || null;
     };
 
+    const shownEffort = (interval) => conversions.convert(details.effortMode, displayMode, interval.effort, prefs);
+
     const describeEffort = (interval) => {
-        return (interval && effort.describe(details && details.effortMode, interval.effort)) || '';
+        return (interval && effort.describe(displayMode, shownEffort(interval))) || '';
     };
 
     const renderIntervals = () => {
@@ -63,16 +71,33 @@ export const timer = (el, state, reportError, factory) => {
 
     // one bar per interval, as wide as it is long and as tall as it is hard; the fill's copy shows how far through.
     const renderGraph = () => {
-        const efforts = workout.intervals.map((interval) => interval.effort);
+        const efforts = workout.intervals.map(shownEffort);
         els.graphs.forEach((graph) => {
             graph.replaceChildren(...workout.intervals.map((interval) => {
                 const bar = window.document.createElement('div');
                 bar.className = 'timer__graph-bar';
                 bar.style.flexGrow = interval.seconds;
-                bar.style.setProperty('--intensity', effort.intensity(details.effortMode, interval.effort, efforts));
+                bar.style.setProperty('--intensity', effort.intensity(displayMode, shownEffort(interval), efforts));
                 return bar;
             }));
         });
+    };
+
+    // only offered when there's another mode to convert to.
+    const renderModes = () => {
+        const modes = details ? conversions.available(details.effortMode, prefs) : [];
+        els.mode.replaceChildren(...modes.map((id) => new window.Option(effort.mode(id).label, id, false, id === displayMode)));
+        els.mode.hidden = modes.length < 2;
+    };
+
+    const changeMode = () => {
+        displayMode = els.mode.value;
+        prefs.timerMode = displayMode;
+        preferenceStore.save(prefs).catch((error) => {
+            reportError('Could not save the effort mode. ' + error);
+        });
+        renderIntervals();
+        renderGraph();
     };
 
     const renderStatus = () => {
@@ -164,9 +189,9 @@ export const timer = (el, state, reportError, factory) => {
         dispatch({type: workout.status === 'running' ? 'PAUSE' : 'START', now: window.performance.now()});
     };
 
-    // anywhere on the screen is a play/pause button, except the way out.
+    // anywhere on the screen is a play/pause button, except the way out and the mode switch.
     const clicked = (e) => {
-        if (e.target.closest('a')) {
+        if (e.target.closest('a, select')) {
             return;
         }
         toggle();
@@ -187,11 +212,21 @@ export const timer = (el, state, reportError, factory) => {
         wakeLock.release();
         el.style.display = '';
         el.removeEventListener('click', clicked);
+        if (els.mode) {
+            els.mode.removeEventListener('change', changeMode);
+        }
         window.document.removeEventListener('keydown', keyed);
     };
 
     const setup = async () => {
         details = await loadWorkout();
+        prefs = await preferenceStore.get();
+        if (details) {
+            details.effortMode = effort.mode(details.effortMode).id;
+        }
+        displayMode = details && conversions.available(details.effortMode, prefs).includes(prefs.timerMode)
+            ? prefs.timerMode
+            : details && details.effortMode;
         const intervals = details ? details.intervals : [];
 
         if (!intervals || typeof(intervals.forEach) !== 'function') {
@@ -203,6 +238,7 @@ export const timer = (el, state, reportError, factory) => {
         el.style.display = 'flex';
 
         els.title = el.querySelector('.timer__title');
+        els.mode = el.querySelector('.timer__mode');
         els.remaining = el.querySelector('.timer__remaining');
         els.progress = el.querySelector('.timer__progress');
         els.progressFill = el.querySelector('.timer__progress-fill');
@@ -215,11 +251,13 @@ export const timer = (el, state, reportError, factory) => {
         els.status = el.querySelector('.interval-timer__status');
 
         els.title.textContent = details ? details.title : '';
+        renderModes();
         renderIntervals();
         renderGraph();
         renderStatus();
         renderClock(0);
         el.addEventListener('click', clicked);
+        els.mode.addEventListener('change', changeMode);
         window.document.addEventListener('keydown', keyed);
     };
 

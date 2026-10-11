@@ -31,6 +31,13 @@ const config = {
             nav: "workouts",
             description: "Edit workout",
         },
+        {
+            path: /^preferences$/,
+            view: "preferences",
+            id: "preferences",
+            nav: "preferences",
+            description: "Effort conversions",
+        },
     ]),
 },
     state = { workouts: document.getElementById("workouts") },

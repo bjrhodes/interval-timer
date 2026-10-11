@@ -37,6 +37,10 @@
                 <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>
                 <span>Workouts</span>
             </a>
+            <a class="app-nav__link" href="preferences" data-nav="preferences">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9M15 5v4M9 15v4"/></svg>
+                <span>Preferences</span>
+            </a>
         </nav>
     </header>
 
@@ -119,6 +123,15 @@
                 <a href="" class="btn interval__add">Add interval</a>
             </div>
         </section>
+
+        <section id="preferences" class="preferences">
+            <div class="page-header">
+                <h1 class="page-header__title">Preferences</h1>
+            </div>
+            <p class="muted">Enter a peak from a test and workouts can be shown in that effort mode, e.g. power targets
+                for a workout planned by heart rate. Advanced lets you set the target for each level of effort.</p>
+            <div class="preferences__sections"></div>
+        </section>
     </main>
 
     <section id="timer" class="timer">
@@ -127,6 +140,8 @@
                 <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
             </a>
             <span class="timer__title"></span>
+            <label class="visuallyhidden" for="timer-mode">Show targets as</label>
+            <select id="timer-mode" class="input select timer__mode" hidden></select>
             <span class="timer__remaining"></span>
         </header>
         <div class="timer__progress" role="progressbar" aria-label="Workout progress" aria-valuemin="0" aria-valuemax="100">

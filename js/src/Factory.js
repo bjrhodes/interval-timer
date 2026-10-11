@@ -1,9 +1,11 @@
 import { AppController } from './AppController.js';
 import { Router } from './routers/router.js';
-import { upgrade, workout } from './stores/workout-store.js';
+import { preferences as preferenceStore, upgrade as upgradePreferences } from './stores/preferences-store.js';
+import { upgrade as upgradeWorkouts, workout } from './stores/workout-store.js';
 import { session } from './timer/session.js';
 import { Beep } from './utilities/beep.js';
 import { Classy } from './utilities/classy.js';
+import { conversions } from './utilities/conversions.js';
 import { effort } from './utilities/effort.js';
 import { enumerable as makeEnumerable } from './utilities/enumerable.js';
 import { ErrorReporter } from './utilities/ErrorReporter.js';
@@ -15,12 +17,18 @@ import { UpdateCheck } from './utilities/update-check.js';
 import { WakeLock } from './utilities/wake-lock.js';
 import { editWorkout } from './views/editworkout.js';
 import { home } from './views/home.js';
+import { preferences } from './views/preferences.js';
 import { timer } from './views/timer.js';
 import { workouts } from './views/workouts.js';
 
 // routes and stores refer to these by name.
-const views = { editWorkout, home, timer, workouts };
-const stores = { workout };
+const views = { editWorkout, home, preferences, timer, workouts };
+const stores = { workout, preferences: preferenceStore };
+
+const upgrade = (db, oldVersion) => {
+    upgradeWorkouts(db, oldVersion);
+    upgradePreferences(db, oldVersion);
+};
 
 export const Factory = (config, state, document) => {
     const cached = {
@@ -38,7 +46,7 @@ export const Factory = (config, state, document) => {
     const wakeLock  = WakeLock(window);
 
     // never reload under a running workout, or before an edit has saved.
-    UpdateCheck(window, () => ['timer', 'editWorkout'].includes(document.body.getAttribute('data-view')));
+    UpdateCheck(window, () => ['timer', 'editWorkout', 'preferences'].includes(document.body.getAttribute('data-view')));
 
     // just hate this clunky syntax...
     const getEl = (id) => {
@@ -69,7 +77,7 @@ export const Factory = (config, state, document) => {
     // one connection, shared by every store.
     const database = () => {
         if (!cached.db) {
-            cached.db = openDb(window, 'interval-timer', 1, upgrade);
+            cached.db = openDb(window, 'interval-timer', 2, upgrade);
             // asks the browser not to clear storage under pressure, e.g. Safari after a week without a visit.
             window.navigator.storage?.persist?.().catch(() => {});
         }
@@ -96,6 +104,7 @@ export const Factory = (config, state, document) => {
         session:    () => session,
         beep:       () => beep,
         effort:     () => effort,
+        conversions: () => conversions,
         summarise:  () => summarise,
         format:     () => format,
         tools:      () => tools,

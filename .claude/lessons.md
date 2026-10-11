@@ -25,3 +25,7 @@
 ## Stop background servers by port, not by command line
 - **What happened:** `pkill -f "http-server <dir>"` missed a server started with `npx`, because the process runs as `node …` with different arguments, so it kept running.
 - **Rule:** after a test run, stop a server with `lsof -ti :<port> | xargs kill`, then check the port is free.
+
+## Throwaway Playwright specs outside the repo can't resolve packages
+- **What happened:** a check spec in the scratchpad failed with "Cannot find package '@playwright/test'", because Node resolves imports from the spec's own folder.
+- **Rule:** import it by absolute path (`<repo>/node_modules/@playwright/test/index.mjs`), and use a scratchpad config that spreads the repo's config with its own `testDir`.

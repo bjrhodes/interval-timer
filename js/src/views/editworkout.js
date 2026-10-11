@@ -1,9 +1,11 @@
 export const editWorkout = (el, state, reportError, factory) => {
     const tools = factory.tools(),
         effort = factory.effort(),
+        conversions = factory.conversions(),
         router = factory.router(),
         summarise = factory.summarise(),
         workoutStore = factory.store('workout'),
+        preferenceStore = factory.store('preferences'),
         els = {
             name: null,
             start: null,
@@ -15,7 +17,8 @@ export const editWorkout = (el, state, reportError, factory) => {
             newUnits: null,
             newEffort: null,
         };
-    let workout;
+    let workout,
+        prefs;
 
     const loadWorkout = async () => {
         const params = router.parameters();
@@ -119,17 +122,27 @@ export const editWorkout = (el, state, reportError, factory) => {
     };
 
     const switchMode = (input) => {
-        if (input.value === workout.effortMode) {
+        const from = workout.effortMode,
+            to = effort.mode(input.value).id;
+        if (to === from) {
             return;
         }
-        // Targets don't translate between modes, so switching clears them.
-        if (hasEfforts() && !window.confirm('Switching effort mode will clear the effort set on each interval. Continue?')) {
+        // Targets convert where Preferences map both modes; otherwise switching clears them.
+        const convertible = conversions.available(from, prefs).includes(to);
+        if (!convertible && hasEfforts() &&
+            !window.confirm('There is no conversion to this effort mode set up in Preferences, so switching will ' +
+                'clear the effort set on each interval. Continue?')) {
             renderModes();
             return;
         }
-        workout.effortMode = effort.mode(input.value).id;
+        workout.effortMode = to;
         workout.intervals.forEach((interval) => {
-            delete interval.effort;
+            const value = convertible ? conversions.convert(from, to, interval.effort, prefs) : null;
+            if (value === null) {
+                delete interval.effort;
+            } else {
+                interval.effort = value;
+            }
         });
         save();
         renderIntervals();
@@ -225,6 +238,7 @@ export const editWorkout = (el, state, reportError, factory) => {
         els.newEffort = el.querySelector('.interval-list__actions-effort');
 
         workout = await loadWorkout();
+        prefs = await preferenceStore.get();
         render();
         attachHandlers();
         el.style.display = 'block';

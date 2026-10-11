@@ -689,6 +689,106 @@ body[data-view="timer"] > .container {
 }
 
 /* ==========================================================================
+   Preferences
+   ========================================================================== */
+
+.preferences__sections {
+    display: grid;
+    gap: 1rem;
+    margin: 1.25rem 0 2rem;
+}
+
+.preferences__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.preferences__help {
+    margin: 0 0 0.9rem;
+    font-size: 0.9rem;
+}
+
+.preferences__unit {
+    max-width: 12rem;
+}
+
+.switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.switch__input {
+    appearance: none;
+    position: relative;
+    width: 2.25rem;
+    height: 1.25rem;
+    margin: 0;
+    border-radius: 1rem;
+    background: var(--border);
+    cursor: inherit;
+    transition: background 0.15s;
+}
+
+.switch__input::after {
+    content: "";
+    position: absolute;
+    top: 0.15rem;
+    left: 0.15rem;
+    width: 0.95rem;
+    height: 0.95rem;
+    border-radius: 50%;
+    background: var(--surface);
+    transition: transform 0.15s;
+}
+
+.switch__input:checked {
+    background: var(--accent);
+}
+
+.switch__input:checked::after {
+    transform: translateX(1rem);
+}
+
+.switch__input:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+}
+
+.switch__input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.curve {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.curve th,
+.curve td {
+    padding: 0.3rem 0;
+    text-align: left;
+    font-size: 0.9rem;
+}
+
+.curve thead th {
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.curve tbody th {
+    font-weight: normal;
+    padding-right: 0.75rem;
+}
+
+/* ==========================================================================
    Timer: distraction free, readable from across the room
    ========================================================================== */
 
@@ -739,6 +839,17 @@ body[data-view="timer"] > .container {
 
 .timer__remaining {
     font-variant-numeric: tabular-nums;
+}
+
+.timer__mode {
+    width: auto;
+    min-height: 2.25rem;
+    padding: 0.3rem 0.5rem;
+    font-size: 0.9rem;
+}
+
+.timer__mode[hidden] {
+    display: none;
 }
 
 /* The progress bar is an effort graph: the fill is an accent copy of it, clipped to how far through we are. */
