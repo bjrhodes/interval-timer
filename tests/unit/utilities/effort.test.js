@@ -48,6 +48,12 @@ describe('effort.parse', () => {
             expect(effort.parse('power', '-5')).toBe(0);
             expect(effort.parse('power', '9999')).toBe(2000);
         });
+
+        it('takes speed in whole km/h or mph', () => {
+            expect(effort.parse('speedKmh', '32.5')).toBe(32);
+            expect(effort.parse('speedKmh', '150')).toBe(100);
+            expect(effort.parse('speedMph', '80')).toBe(60);
+        });
     });
 
     it('truncates decimals', () => {
@@ -73,6 +79,8 @@ describe('effort.describe', () => {
     it('adds the unit for numeric modes', () => {
         expect(effort.describe('power', 250)).toBe('250 W');
         expect(effort.describe('heartRate', 0)).toBe('0 bpm');
+        expect(effort.describe('speedKmh', 30)).toBe('30 km/h');
+        expect(effort.describe('speedMph', 20)).toBe('20 mph');
     });
 
     it('returns null when there is no target, or it is off the scale', () => {

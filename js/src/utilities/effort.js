@@ -52,6 +52,24 @@ const modes = [
         max: 2000,
         placeholder: '250',
     },
+    {
+        id: 'speedKmh',
+        label: 'Speed (km/h)',
+        type: 'numeric',
+        unit: 'km/h',
+        min: 0,
+        max: 100,
+        placeholder: '30',
+    },
+    {
+        id: 'speedMph',
+        label: 'Speed (mph)',
+        type: 'numeric',
+        unit: 'mph',
+        min: 0,
+        max: 60,
+        placeholder: '20',
+    },
 ];
 
 const defaultMode = modes[0].id;
