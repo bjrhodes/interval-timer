@@ -14,6 +14,7 @@ export const timer = (el, state, reportError, factory) => {
         router = factory.router(),
         wakeLock = factory.wakeLock(),
         workoutStore = factory.store('workout'),
+        planStore = factory.store('plan'),
         preferenceStore = factory.store('preferences'),
         els = {
             title: null,
@@ -40,7 +41,7 @@ export const timer = (el, state, reportError, factory) => {
 
     const loadWorkout = async () => {
         const params = router.parameters();
-        return (params.length >= 2 && await workoutStore.getWorkout(params[1])) || null;
+        return (params.length >= 2 && (await workoutStore.getWorkout(params[1]) || await planStore.getWorkout(params[1]))) || null;
     };
 
     const shownEffort = (interval) => conversions.convert(details.effortMode, displayMode, interval.effort, prefs);
@@ -133,7 +134,11 @@ export const timer = (el, state, reportError, factory) => {
         const intervalChanged = prev.index !== workout.index;
         if (intervalChanged) {
             renderIntervals();
-            beep.double();
+            (workout.status === 'finished' && !prefs.skipFanfare ? beep.fanfare : beep.double)();
+        }
+        // a plan's test only counts as done once its result is in.
+        if (workout.status === 'finished' && prev.status !== 'finished' && details.plan && !details.test) {
+            planStore.complete(details.id).catch((error) => reportError('Could not mark the session done. ' + error));
         }
         if (prev.status !== workout.status) {
             renderStatus();

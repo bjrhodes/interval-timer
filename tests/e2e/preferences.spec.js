@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { chooseOneOff } from './helpers.js';
 
 // Each test gets a fresh browser context, so no preferences are set until a test sets them.
 
@@ -19,6 +20,7 @@ test('shows a heart rate workout in power once both peaks are set, and remembers
 
     // the next workout is Over Unders (3/2/3/2), planned by heart rate, which warms up at 130 bpm.
     await nav(page, 'Home');
+    await chooseOneOff(page);
     await page.getByRole('link', { name: 'Start workout' }).click();
     const mode = page.getByLabel('Show targets as'),
         effort = page.locator('.current-interval__effort');
@@ -113,4 +115,50 @@ test('plays the chosen beep, remembers it, and the timer beeps with it', async (
     await page.clock.fastForward('13:58');
     await expect.poll(tones).toContain(1046);
     expect((await tones()).every((hz) => hz === 1046 || hz === 2887)).toBe(true);
+});
+
+test('ends a workout with a fanfare, previews it, and skips it when asked', async ({ page }) => {
+    await page.clock.install();
+    await page.addInitScript(() => {
+        window.waves = [];
+        const start = OscillatorNode.prototype.start;
+        OscillatorNode.prototype.start = function (...args) {
+            window.waves.push(this.type);
+            return start.apply(this, args);
+        };
+    });
+    // the soft blip's fanfare is synth brass: 13 notes of two saws each.
+    const saws = async () => (await page.evaluate(() => window.waves)).filter((type) => type === 'sawtooth').length;
+    const finish = async () => {
+        await page.goto('/timer/threshold-ladder');
+        await expect(page.locator('.timer__title')).toHaveText('Threshold Ladder');
+        await page.locator('#timer').click();
+        await page.clock.fastForward('02:00:00');
+        await expect(page.locator('.current-interval__timer')).toHaveText('Done');
+    };
+
+    await finish();
+    await expect.poll(saws).toBe(26);
+
+    await page.goto('/preferences');
+    const skip = page.getByLabel('Skip fanfare');
+    await expect(skip).not.toBeChecked();
+    // a reload would cut off the save, so leave and come back with the app's own links.
+    const saved = async () => {
+        await nav(page, 'Home');
+        await nav(page, 'Preferences');
+        await expect(skip).toBeChecked();
+    };
+    await skip.check();
+    await saved();
+    // turning it back on plays it.
+    await skip.uncheck();
+    await expect.poll(saws).toBe(26);
+    await skip.check();
+    await saved();
+
+    await finish();
+    // the last interval still ends with its double beep.
+    await expect.poll(async () => (await page.evaluate(() => window.waves)).length).toBeGreaterThan(0);
+    expect(await saws()).toBe(0);
 });

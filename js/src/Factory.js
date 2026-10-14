@@ -1,5 +1,7 @@
 import { AppController } from './AppController.js';
+import { guided } from './plans/guided.js';
 import { Router } from './routers/router.js';
+import { plan, upgrade as upgradePlan } from './stores/plan-store.js';
 import { preferences as preferenceStore, upgrade as upgradePreferences } from './stores/preferences-store.js';
 import { upgrade as upgradeWorkouts, workout } from './stores/workout-store.js';
 import { session } from './timer/session.js';
@@ -16,18 +18,20 @@ import { tools } from './utilities/tools.js';
 import { UpdateCheck } from './utilities/update-check.js';
 import { WakeLock } from './utilities/wake-lock.js';
 import { editWorkout } from './views/editworkout.js';
+import { guide } from './views/guide.js';
 import { home } from './views/home.js';
 import { preferences } from './views/preferences.js';
 import { timer } from './views/timer.js';
 import { workouts } from './views/workouts.js';
 
 // routes and stores refer to these by name.
-const views = { editWorkout, home, preferences, timer, workouts };
-const stores = { workout, preferences: preferenceStore };
+const views = { editWorkout, guide, home, preferences, timer, workouts };
+const stores = { workout, preferences: preferenceStore, plan };
 
 const upgrade = (db, oldVersion) => {
     upgradeWorkouts(db, oldVersion);
     upgradePreferences(db, oldVersion);
+    upgradePlan(db, oldVersion);
 };
 
 export const Factory = (config, state, document) => {
@@ -46,7 +50,7 @@ export const Factory = (config, state, document) => {
     const wakeLock  = WakeLock(window);
 
     // never reload under a running workout, or before an edit has saved.
-    UpdateCheck(window, () => ['timer', 'editWorkout', 'preferences'].includes(document.body.getAttribute('data-view')));
+    UpdateCheck(window, () => ['timer', 'editWorkout', 'preferences', 'guide'].includes(document.body.getAttribute('data-view')));
 
     // just hate this clunky syntax...
     const getEl = (id) => {
@@ -77,7 +81,7 @@ export const Factory = (config, state, document) => {
     // one connection, shared by every store.
     const database = () => {
         if (!cached.db) {
-            cached.db = openDb(window, 'interval-timer', 2, upgrade);
+            cached.db = openDb(window, 'interval-timer', 3, upgrade);
             // asks the browser not to clear storage under pressure, e.g. Safari after a week without a visit.
             window.navigator.storage?.persist?.().catch(() => {});
         }
@@ -105,6 +109,7 @@ export const Factory = (config, state, document) => {
         beep:       () => beep,
         sounds:     () => sounds,
         effort:     () => effort,
+        guided:     () => guided,
         conversions: () => conversions,
         summarise:  () => summarise,
         format:     () => format,

@@ -32,6 +32,13 @@ const config = {
             description: "Edit workout",
         },
         {
+            path: /^guide(\/.*)?/,
+            view: "guide",
+            id: "guide",
+            nav: "home",
+            description: "Set up a guided plan",
+        },
+        {
             path: /^preferences$/,
             view: "preferences",
             id: "preferences",

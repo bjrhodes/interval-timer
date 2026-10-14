@@ -110,7 +110,7 @@ export const preferences = (el, state, reportError, factory) => {
             chosen = sounds[prefs.beep] ? prefs.beep : 'softBlip';
         return '<section class="panel">' +
             '<h2 class="panel__title">Beep</h2>' +
-            '<p class="muted preferences__help">The sound for the countdown and each new interval.</p>' +
+            '<p class="muted preferences__help">The sound for the countdown, each new interval and the fanfare at the end.</p>' +
             '<div class="field">' +
                 '<label class="block-label" for="beep-sound">Sound</label>' +
                 '<select id="beep-sound" class="input select preferences__beep">' +
@@ -118,6 +118,10 @@ export const preferences = (el, state, reportError, factory) => {
                         (id === chosen ? ' selected' : '') + '>' + e(sound.name) + '</option>').join('') +
                 '</select>' +
             '</div>' +
+            '<label class="switch">' +
+                '<input type="checkbox" class="switch__input preferences__fanfare"' + (prefs.skipFanfare ? ' checked' : '') + '>' +
+                '<span class="switch__label">Skip fanfare</span>' +
+            '</label>' +
         '</section>';
     };
 
@@ -190,12 +194,27 @@ export const preferences = (el, state, reportError, factory) => {
         beep();
     };
 
+    // turning it back on plays it, so it can be heard too.
+    const changeFanfare = (input) => {
+        prefs.skipFanfare = input.checked;
+        save();
+        if (!prefs.skipFanfare) {
+            beep.unlock();
+            beep.use(prefs.beep);
+            beep.fanfare();
+        }
+    };
+
     const changed = (e) => {
         const target = e.target,
             item = target.closest('.preferences__section'),
             id = item && item.getAttribute('data-section');
         if (target.classList.contains('preferences__beep')) {
             changeBeep(target);
+            return;
+        }
+        if (target.classList.contains('preferences__fanfare')) {
+            changeFanfare(target);
             return;
         }
         if (!id) {

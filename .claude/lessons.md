@@ -17,6 +17,7 @@
 ## Hash URLs to path URLs turns in-page navigation into reloads
 - **What happened:** `page.goto('/#workouts')` only changed the hash; `page.goto('/workouts')` reloads the page, cutting off an IndexedDB save still in flight, so a storage e2e test failed.
 - **Rule:** when a test edits and then moves on, move with the app's own links (or a click), not `goto`, unless a reload is the point of the test.
+- **Again:** `page.reload()` straight after a `check()` lost the save in a preferences test, and so did a `goto` to another view. To prove a setting persisted, leave and come back with nav links and assert it; do the same before any `goto` that relies on the save.
 
 ## Re-read a file the user has open before editing it with a script
 - **What happened:** a scripted edit matched against beep.js as I'd read it earlier, but the user had reformatted it in the meantime. The script's assert caught it, so nothing was overwritten.
@@ -33,3 +34,7 @@
 ## Wait for a view's async setup before interacting in e2e tests
 - **What happened:** removing the embedded MP3 made the page's `load` event fire sooner, so `page.goto` returned before the timer's async setup had attached its keydown listener, and a space-bar test failed. The slow audio load had hidden the race.
 - **Rule:** after `goto`, wait for something the view renders alongside its listeners (e.g. the timer title) before clicking or pressing keys. When comparing against master in a worktree, compare on the same disk; timing differs across volumes.
+
+## A new link can duplicate an accessible name the tests select by
+- **What happened:** I offered "Guided plan" both in the first-visit chooser and in the Library panel, so `getByRole('link', { name: /^Guided plan/ })` matched two elements and every guided e2e test failed in strict mode.
+- **Rule:** before adding a link or button, check the page for another control with the same name. Two controls with one name on one screen is usually a UX smell too, so show one at a time rather than loosening the selector.

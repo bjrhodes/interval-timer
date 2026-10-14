@@ -122,6 +122,7 @@ const available = (fromId, prefs) => {
 
 export const conversions = {
     defaults: defaults,
+    sections: sections,
     curveFromPeak: curveFromPeak,
     convert: convert,
     available: available,

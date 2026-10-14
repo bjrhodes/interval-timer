@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { chooseOneOff } from './helpers.js';
 
 const sections = (page) => ({
     home: page.locator('#home'),
@@ -38,6 +39,7 @@ const expectOnlyVisible = async (page, name) => {
 test.describe('routing', () => {
     test('shows the next workout on the home page by default', async ({ page }) => {
         await page.goto('/');
+        await chooseOneOff(page);
 
         await expectOnlyVisible(page, 'home');
         const next = page.locator('.next-workout');
@@ -86,6 +88,7 @@ test.describe('routing', () => {
 
     test('keeps the base path when loaded via index.html', async ({ page }) => {
         await page.goto('/index.html');
+        await chooseOneOff(page);
 
         await expectLinkTo(page.getByRole('navigation').getByRole('link', { name: 'Workouts' }), '/workouts');
         await expectLinkTo(page.locator('.next-workout').getByRole('link', { name: 'Start workout' }),
@@ -128,6 +131,7 @@ test.describe('routing', () => {
 
     test('starts the next workout from the home page', async ({ page }) => {
         await page.goto('/');
+        await chooseOneOff(page);
         await page.getByRole('link', { name: 'Start workout' }).click();
 
         await expect(page).toHaveURL(/\/timer\/over-unders-3-2-3-2$/);

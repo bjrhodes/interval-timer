@@ -1,7 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Beep, sounds } from '../../../js/src/utilities/beep.js';
 
-const ramp = () => ({exponentialRampToValueAtTime: vi.fn(), linearRampToValueAtTime: vi.fn()});
+const ramp = () => ({setValueAtTime: vi.fn(), exponentialRampToValueAtTime: vi.fn(), linearRampToValueAtTime: vi.fn()});
+
+const hz = (note) => 440 * 2 ** ((note - 69) / 12);
 
 describe('Beep', () => {
     let tones, volumes;
@@ -15,15 +17,23 @@ describe('Beep', () => {
             this.resume ??= vi.fn(() => Promise.resolve());
         }));
         vi.stubGlobal('OscillatorNode', vi.fn(function (ctx, options) {
-            Object.assign(this, options, {start: vi.fn(), stop: vi.fn(), frequency: ramp()});
+            Object.assign(this, options, {start: vi.fn(), stop: vi.fn(), frequency: ramp(), detune: {}});
             this.hz = options.frequency;
+            this.cents = options.detune;
             this.connect = vi.fn((node) => node);
             tones.push(this);
         }));
         vi.stubGlobal('GainNode', vi.fn(function () {
             this.gain = ramp();
-            this.connect = vi.fn();
+            this.connect = vi.fn((node) => node);
             volumes.push(this);
+        }));
+        vi.stubGlobal('BiquadFilterNode', vi.fn(function () {
+            this.frequency = ramp();
+            this.connect = vi.fn((node) => node);
+        }));
+        vi.stubGlobal('DynamicsCompressorNode', vi.fn(function () {
+            this.connect = vi.fn();
         }));
     });
 
@@ -79,6 +89,59 @@ describe('Beep', () => {
         beep.use('retro');
         beep.double();
         expect(tones.map((tone) => tone.start.mock.calls[0][0])).toEqual([2, 2, 2.14, 2.14]);
+    });
+
+    describe('fanfare', () => {
+        const fanfare = (id) => {
+            const beep = Beep();
+            beep.use(id);
+            beep.fanfare();
+            return tones;
+        };
+        const firstStarts = () => tones.map((tone) => tone.start.mock.calls[0][0]);
+
+        it('plays triumphant synth brass for the soft blip, the woodblock and an unknown sound', () => {
+            for (const id of ['softBlip', 'woodblock', 'nonsense']) {
+                tones = [];
+                fanfare(id);
+                const saws = tones.filter((tone) => tone.type === 'sawtooth');
+                // 13 notes, each two saws detuned either side of the note.
+                expect(saws).toHaveLength(26);
+                expect(saws.slice(0, 2)).toMatchObject([{hz: hz(67), cents: -9}, {hz: hz(67), cents: 9}]);
+                // the closing chord's four notes are long enough for vibrato.
+                expect(tones.filter((tone) => tone.type === 'sine').map((tone) => tone.hz)).toEqual([5.5, 5.5, 5.5, 5.5]);
+            }
+        });
+
+        it('plays Charge! as a square wave for the retro and digital watch beeps', () => {
+            for (const id of ['retro', 'digitalWatch']) {
+                tones = [];
+                fanfare(id);
+                expect(tones.every((tone) => tone.type === 'square')).toBe(true);
+                expect(tones.map((tone) => Math.round(tone.hz))).toEqual([392, 523, 659, 784, 659, 784, 523, 659]);
+            }
+        });
+
+        it('plays Level up on the marimba, and Charge! on the bell, each with its beep\'s overtone', () => {
+            fanfare('marimba');
+            expect(tones.slice(0, 2).map((tone) => tone.hz)).toEqual([hz(60), hz(60) * 4]);
+            expect(tones).toHaveLength(22);
+
+            tones = [];
+            fanfare('bell');
+            expect(tones.slice(0, 2).map((tone) => tone.hz)).toEqual([hz(67), hz(67) * 2.76]);
+            expect(tones.every((tone) => tone.type === 'sine')).toBe(true);
+        });
+
+        it('schedules every note on the audio clock, through a compressor', () => {
+            fanfare('retro');
+            const ctx = AudioContext.mock.instances[0];
+            expect(firstStarts()[0]).toBeCloseTo(2.05);
+            // the last chord starts six beats in.
+            expect(firstStarts().at(-1)).toBeCloseTo(2.05 + 6 * 0.15);
+            expect(volumes[0].connect).toHaveBeenCalledWith(DynamicsCompressorNode.mock.instances[0]);
+            expect(DynamicsCompressorNode.mock.instances[0].connect).toHaveBeenCalledWith(ctx.destination);
+        });
     });
 
     it('unlocks and beeps through one audio context', () => {

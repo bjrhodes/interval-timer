@@ -1,21 +1,77 @@
 /**
  * The landing page: one big "next workout" to get going with, then a few panels of context.
  *
- * Until there's a schedule and a history to recommend from, "next" simply follows the library order.
+ * A first visit asks how to train instead. With a guided plan, "next" is the plan's next session; otherwise it
+ * follows the library order.
  */
 export const home = (el, state, reportError, factory) => {
     const tools = factory.tools(),
         format = factory.format(),
         summarise = factory.summarise(),
-        workoutStore = factory.store('workout');
+        effort = factory.effort(),
+        guided = factory.guided(),
+        workoutStore = factory.store('workout'),
+        planStore = factory.store('plan'),
+        preferenceStore = factory.store('preferences');
 
     const upcomingCount = 3;
+    // the guided plan, or null without one.
+    let plan;
 
     const loadWorkouts = async () => {
         const stored = await workoutStore.getWorkouts();
         return (stored instanceof Array ? stored : [])
             .filter((workout) => workout.intervals && workout.intervals.length)
             .map((workout) => ({...workout, ...summarise(workout)}));
+    };
+
+    // @extend a self-made plan only opens the library for now; it could schedule the rider's own workouts.
+    const renderChooser = () => {
+        const e = tools.escapeHtml;
+        const choice = (tag, attrs, title, text) => '<' + tag + ' class="choice" ' + attrs + '>' +
+            '<span class="choice__title">' + e(title) + '</span>' +
+            '<span class="choice__text">' + e(text) + '</span>' +
+        '</' + tag + '>';
+        return '<h1 class="next-workout__title">How do you want to train?</h1>' +
+            '<div class="choices">' +
+                choice('a', 'href="guide"', 'Guided plan',
+                    'New to intervals? Take a short test, then follow a plan built around you.') +
+                choice('a', 'href="workouts" data-start="self"', 'Self-made plan',
+                    'Build your own workouts from the library.') +
+                choice('button', 'type="button" data-start="oneOff"', 'One-off training',
+                    'Pick a workout and go.') +
+            '</div>';
+    };
+
+    const renderSession = (session, plan) => {
+        const e = tools.escapeHtml;
+        const actions = session.test
+            ? '<a href="' + e('timer/' + session.id) + '" class="btn btn--primary btn--large">Start test</a>' +
+                '<a href="guide/result" class="btn btn--large">Enter result</a>'
+            : '<a href="' + e('timer/' + session.id) + '" class="btn btn--primary btn--large">Start workout</a>' +
+                '<button type="button" class="btn btn--large" data-done="' + e(session.id) + '">Mark done</button>';
+        return '<h1 class="next-workout__title">' + e(session.title) + '</h1>' +
+            '<p class="next-workout__meta">' +
+                '<span class="next-workout__duration">' + e(session.duration) + '</span>' +
+                '<span>' + e(session.test ? 'Calibration test' : 'Level ' + plan.level) + '</span>' +
+            '</p>' +
+            '<div class="next-workout__actions">' + actions + '</div>';
+    };
+
+    // the first test against the latest, once there's been a retest.
+    const renderProgress = (plan) => {
+        const e = tools.escapeHtml,
+            first = plan.results[0],
+            latest = plan.results[plan.results.length - 1];
+        const change = (from, to) => from > 0 ? ' (' + (to >= from ? '+' : '') + Math.round((to - from) / from * 100) + '%)' : '';
+        const stat = (value, label) => '<div class="stat"><span class="stat__value">' + e(value) + '</span>' +
+            '<span class="stat__label">' + e(label) + '</span></div>';
+        return '<div class="stats">' +
+            stat(latest.steps, 'steps, from ' + first.steps + change(first.steps, latest.steps)) +
+            (latest.value ? stat(effort.describe(plan.mode, latest.value),
+                'from ' + effort.describe(plan.mode, first.value) + change(first.value, latest.value)) : '') +
+        '</div>' +
+        '<a href="guide" class="btn">Start a new plan</a>';
     };
 
     const renderNext = (workout) => {
@@ -54,7 +110,8 @@ export const home = (el, state, reportError, factory) => {
         }).join('');
     };
 
-    const renderLibrary = (workouts) => {
+    // a rider who went their own way can still take up a guided plan.
+    const renderLibrary = (workouts, offerGuide) => {
         const e = tools.escapeHtml;
         const seconds = workouts.map((workout) => workout.seconds);
         const stat = (value, label) => {
@@ -68,18 +125,56 @@ export const home = (el, state, reportError, factory) => {
             : stat(0, 'workouts');
 
         return '<div class="stats">' + stats + '</div>' +
-            '<a href="workouts" class="btn">Browse workouts</a>';
+            '<a href="workouts" class="btn">Browse workouts</a>' +
+            (offerGuide ? ' <a href="guide" class="btn">Guided plan</a>' : '');
+    };
+
+    const render = async () => {
+        const [workouts, prefs] = await Promise.all([loadWorkouts(), preferenceStore.get()]);
+        plan = await planStore.get();
+        const sessions = plan ? guided.next(plan, 1 + upcomingCount).map((session) => ({...session, ...summarise(session)})) : [],
+            choosing = !plan && !prefs.start,
+            progress = el.querySelector('.home__progress');
+
+        el.querySelector('.next-workout .eyebrow').textContent = choosing ? 'Welcome' : 'Next workout';
+        el.querySelector('.next-workout__body').innerHTML = choosing ? renderChooser()
+            : plan ? renderSession(sessions[0], plan) : renderNext(workouts[0]);
+        el.querySelector('.home__upcoming').hidden = choosing;
+        el.querySelector('.upcoming-list').innerHTML = renderUpcoming((plan ? sessions : workouts).slice(1, 1 + upcomingCount));
+        el.querySelector('.library-stats').innerHTML = renderLibrary(workouts, !plan && !choosing);
+        progress.hidden = !plan || plan.results.length < 2;
+        if (!progress.hidden) {
+            el.querySelector('.progress-stats').innerHTML = renderProgress(plan);
+        }
+    };
+
+    // the self-made link goes on to the library, while the save finishes behind it.
+    const start = async (choice) => {
+        const prefs = await preferenceStore.get();
+        await preferenceStore.save({...prefs, start: choice});
+        if (choice === 'oneOff') {
+            await render();
+        }
+    };
+
+    const clicked = (event) => {
+        const target = event.target.closest('[data-start], [data-done]');
+        if (!target) {
+            return;
+        }
+        const done = target.getAttribute('data-done'),
+            saving = done ? planStore.complete(done).then(render) : start(target.getAttribute('data-start'));
+        saving.catch((error) => reportError('Could not save your choice. ' + error));
     };
 
     const teardown = () => {
         el.style.display = '';
+        el.removeEventListener('click', clicked);
     };
 
     const setup = async () => {
-        const workouts = await loadWorkouts();
-        el.querySelector('.next-workout__body').innerHTML = renderNext(workouts[0]);
-        el.querySelector('.upcoming-list').innerHTML = renderUpcoming(workouts.slice(1, 1 + upcomingCount));
-        el.querySelector('.library-stats').innerHTML = renderLibrary(workouts);
+        await render();
+        el.addEventListener('click', clicked);
         el.style.display = 'block';
     };
 
