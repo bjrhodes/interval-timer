@@ -38,3 +38,11 @@
 ## A new link can duplicate an accessible name the tests select by
 - **What happened:** I offered "Guided plan" both in the first-visit chooser and in the Library panel, so `getByRole('link', { name: /^Guided plan/ })` matched two elements and every guided e2e test failed in strict mode.
 - **Rule:** before adding a link or button, check the page for another control with the same name. Two controls with one name on one screen is usually a UX smell too, so show one at a time rather than loosening the selector.
+
+## Empty filtered output is not a pass until the filter is proven to match
+- **What happened:** I ran `tsc -p ../tsconfig.json` from `src/`, so errors were reported relative to `src/`, and a `grep "src/…"` over them printed nothing. That looked like a clean result but matched nothing at all.
+- **Rule:** run type-checks and linters from the repo root, and before trusting an empty `grep` of their output, check the unfiltered error count moved.
+
+## List removal targets explicitly, never with a glob after `cd`
+- **What happened:** `rmdir js/src/* …` in a command that also `cd`'d was blocked by the safety check, so none of the chained moves ran either.
+- **Rule:** keep removals in their own command with literal paths (`rmdir js/src/plans js/src/views …`), separate from moves and installs.

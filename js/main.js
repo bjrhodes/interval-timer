@@ -1,6 +1,5 @@
-import { Factory } from './src/Factory.js';
-import { enumerable } from './src/utilities/enumerable.js';
-
+import { Factory } from './Factory.js';
+import { enumerable } from './utilities/enumerable.js';
 const config = {
     // `nav` is the main nav item to highlight; the timer has none, as it hides the nav to stay distraction free.
     routes: enumerable([
@@ -46,8 +45,5 @@ const config = {
             description: "Effort conversions",
         },
     ]),
-},
-    state = { workouts: document.getElementById("workouts") },
-    factory = Factory(config, state);
-
+}, state = { workouts: document.getElementById("workouts") }, factory = Factory(config, state);
 factory.controller().run();
