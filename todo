@@ -1,5 +1,7 @@
 - view not found (404) page
 - Convert everything to typescript!
+- "Sessions a week you can manage" needs to explain what sessions are. (e.g. 30min to 1 hour) etc.
+- "Sessions a week you can manage" is excellent for ease of use, but some users will want to specify exact times they can do. So that would be something like how many different time slots do we have per day and how long is each available slot. We would then need to build a plan which manages TSS over those availablity windows. If a user choses every day, we need to ensure that we put easy days in to allow for recovery.
 - Edit interval page needs work:
     - Allow for editing an interval in a workout
     - make intervals nest so I can repeat intervals, eg (burst, SS, burst, SS, burst) x 4 or nest in the BCI warmup.

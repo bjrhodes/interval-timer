@@ -72,14 +72,15 @@ test('calibrates a power meter with the ramp test, then sets targets in watts', 
     await expect(page.getByLabel('Ramp test max')).toHaveValue('300');
 });
 
-test('plans by feel after the gentle test', async ({ page }) => {
-    await startGuided(page, 'Just how it feels', 'Gentle talk test');
-    await page.getByRole('link', { name: 'Enter result' }).click();
+test('plans by feel straight away, with no test', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('link', { name: /^Guided plan/ }).click();
+    await page.getByRole('button', { name: /^Just how it feels/ }).click();
 
-    await expect(page.getByLabel(/^Your /)).toHaveCount(0);
-    await enterResult(page, { 'Step where talking got hard': 6 });
+    await expect(page.getByRole('button', { name: /^Ramp test/ })).toHaveCount(0);
     await page.getByLabel('Sessions a week you can manage').selectOption('2');
     await page.getByRole('button', { name: 'Build my plan' }).click();
+    await expect(page.getByRole('heading', { name: 'Your plan is ready' })).toBeVisible();
     await page.getByRole('link', { name: 'See your plan' }).click();
 
     await expect(title(page)).toHaveText('Block 1, week 1: Threshold');

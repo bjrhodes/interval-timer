@@ -46,7 +46,7 @@ export const plan = (state, factory) => {
         complete: (id) => queued(() => db
             .then((d) => d.get(STORE, ID))
             .then((saved) => saved && !saved.completed.includes(id)
-                ? put({...saved, completed: saved.completed.concat([id])})
+                ? put(guided.complete(saved, id))
                 : undefined)),
     };
 };

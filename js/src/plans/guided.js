@@ -3,12 +3,13 @@ import { effort } from '../utilities/effort.js';
 
 /**
  * A guided cycling plan: a calibration test, then rolling 4-week blocks of sessions done in order, each block ending
- * in a retest.
+ * in a retest. A plan by feel has nothing to calibrate, so it has no test: each block ends in a rest week instead, and
+ * the next block starts a level up.
  *
  * Every session is planned in perceived effort, so the conversion curves the tests set show it in whatever the rider
  * measures with, and a retest that moves a curve moves every later target with it.
  *
- * The plan record is `{mode, test, sessionsPerWeek, level, block, results, completed}`. Sessions aren't stored: each
+ * The plan record is `{mode, test, sessionsPerWeek, level, block, results, completed}`, with no `test` by feel. Sessions aren't stored: each
  * is built from the record and its id, `plan-test` for the first test or `plan-b{block}-w{week}-s{n}` after it.
  */
 
@@ -90,6 +91,10 @@ const sessions = {
         name: 'Easy spin',
         intervals: () => [minutes('Easy spin: recover for the test', 30, 3)],
     },
+    recovery: {
+        name: 'Recovery spin',
+        intervals: () => [minutes('Easy spin: rest week, let the training sink in', 30, 3)],
+    },
     openers: {
         name: 'Openers',
         intervals: () => [warmup].concat(
@@ -98,7 +103,7 @@ const sessions = {
     },
 };
 
-// the order of a week's sessions, by how many there are; the last week eases off into the retest.
+// the order of a week's sessions, by how many there are; the last week eases off into the retest, or rests without one.
 const weeks = {
     build: {
         2: ['threshold', 'vo2'],
@@ -109,6 +114,11 @@ const weeks = {
         2: ['openers', 'test'],
         3: ['easy', 'openers', 'test'],
         4: ['easy', 'openers', 'easy', 'test'],
+    },
+    rest: {
+        2: ['recovery', 'endurance'],
+        3: ['recovery', 'endurance', 'recovery'],
+        4: ['recovery', 'endurance', 'recovery', 'endurance'],
     },
 };
 
@@ -132,7 +142,7 @@ const block = (plan) => {
     if (!plan.block) {
         return [build(plan, 'plan-test', 'test', 0, '')];
     }
-    return repeat(WEEKS, (week) => (week < WEEKS ? weeks.build : weeks.test)[plan.sessionsPerWeek].map((kind, i) =>
+    return repeat(WEEKS, (week) => (week < WEEKS ? weeks.build : plan.test ? weeks.test : weeks.rest)[plan.sessionsPerWeek].map((kind, i) =>
         build(plan, idOf(plan.block, week, i + 1), kind, week, 'Block ' + plan.block + ', week ' + week + ': ')));
 };
 
@@ -140,7 +150,19 @@ const workout = (plan, id) => block(plan).find((session) => session.id === id) |
 
 const next = (plan, count) => block(plan).filter((session) => !plan.completed.includes(session.id)).slice(0, count);
 
-const create = (mode, test) => ({mode: effort.mode(mode).id, test: tests[test] ? test : 'ramp', block: 0, level: 1, results: [], completed: []});
+// a plan by feel skips the test and starts on its first block, so it needs the sessions a week up front.
+const create = (mode, test, sessionsPerWeek) => effort.mode(mode).id === 'perceived'
+    ? {mode: 'perceived', test: null, sessionsPerWeek: weeks.build[sessionsPerWeek] ? sessionsPerWeek : 3,
+        block: 1, level: 1, results: [], completed: []}
+    : {mode: effort.mode(mode).id, test: tests[test] ? test : 'ramp', block: 0, level: 1, results: [], completed: []};
+
+// marks a session done; without a test to move it on, a block's last session starts the next block a level up.
+const complete = (plan, id) => {
+    const done = plan.completed.includes(id) ? plan : {...plan, completed: plan.completed.concat([id])};
+    return !plan.test && !next(done, 1).length
+        ? {...done, block: plan.block + 1, level: Math.min(MAX_LEVEL, plan.level + 1), completed: []}
+        : done;
+};
 
 // the peak a result stands for: a ramp reaches it, a talk test stops short of it by a known share.
 const peakOf = (plan, value) => {
@@ -198,5 +220,6 @@ export const guided = {
     block: block,
     workout: workout,
     next: next,
+    complete: complete,
     applyResult: applyResult,
 };

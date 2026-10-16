@@ -35,7 +35,7 @@ export const home = (el, state, reportError, factory) => {
         return '<h1 class="next-workout__title">How do you want to train?</h1>' +
             '<div class="choices">' +
                 choice('a', 'href="guide"', 'Guided plan',
-                    'New to intervals? Take a short test, then follow a plan built around you.') +
+                    'New to intervals? Follow a plan built around you.') +
                 choice('a', 'href="workouts" data-start="self"', 'Self-made plan',
                     'Build your own workouts from the library.') +
                 choice('button', 'type="button" data-start="oneOff"', 'One-off training',
