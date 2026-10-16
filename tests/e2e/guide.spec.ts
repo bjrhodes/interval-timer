@@ -56,6 +56,7 @@ test('calibrates a power meter with the ramp test, then sets targets in watts', 
     await expect(title(page)).toHaveText('Ramp test');
     await page.getByRole('link', { name: 'Enter result' }).click();
     await enterResult(page, { 'Steps you finished': 15, 'Your power over the last full step': 300 });
+    await expect(page.getByLabel('Sessions a week you can manage')).toHaveAccessibleDescription(/A session is one ride/);
     await page.getByLabel('Sessions a week you can manage').selectOption('3');
     await page.getByRole('button', { name: 'Build my plan' }).click();
 

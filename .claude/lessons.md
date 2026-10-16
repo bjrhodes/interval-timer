@@ -46,3 +46,7 @@
 ## List removal targets explicitly, never with a glob after `cd`
 - **What happened:** `rmdir js/src/* …` in a command that also `cd`'d was blocked by the safety check, so none of the chained moves ran either.
 - **Rule:** keep removals in their own command with literal paths (`rmdir js/src/plans js/src/views …`), separate from moves and installs.
+
+## A reused dev server serves a stale build
+- **What happened:** Playwright's `reuseExistingServer` picked up a server already on :4173, which served the old compiled JS, so a new e2e assertion failed against markup I'd already changed.
+- **Rule:** run `npm run build` before `npx playwright test` whenever a server may already be running, and don't kill a server I didn't start.

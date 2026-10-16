@@ -76,9 +76,11 @@ export const guide: ViewBuilder = (el, state, reportError, factory) => {
 
     const sessionsField = '<div class="field">' +
         '<label class="block-label" for="guide-sessions">Sessions a week you can manage</label>' +
-        '<select id="guide-sessions" class="input select guide__sessions">' +
+        '<select id="guide-sessions" class="input select guide__sessions" aria-describedby="guide-sessions-help">' +
             [2, 3, 4].map((n) => '<option value="' + n + '"' + (n === 3 ? ' selected' : '') + '>' + n + '</option>').join('') +
         '</select>' +
+        '<p id="guide-sessions-help" class="muted">A session is one ride, warm-up included. They start at about 30 ' +
+            'minutes and build towards an hour or more as you level up.</p>' +
     '</div>';
 
     const renderSessions = () => '<p class="eyebrow">Guided plan</p>' +
