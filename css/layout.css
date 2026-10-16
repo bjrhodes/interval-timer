@@ -481,7 +481,7 @@ body[data-view="timer"] > .container {
 }
 
 /* ==========================================================================
-   Choices: the first-visit chooser and the guided plan's questions
+   Choices: the guided plan's questions
    ========================================================================== */
 
 .choices {
@@ -593,6 +593,12 @@ body[data-view="timer"] > .container {
 
 .guide__back {
     margin-top: 0.5rem;
+}
+
+/* the way out of the guided setup, kept quiet below each step. */
+.guide__skip {
+    margin-top: 2rem;
+    font-size: 0.9rem;
 }
 
 /* ==========================================================================

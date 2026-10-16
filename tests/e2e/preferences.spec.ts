@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { chooseOneOff } from './helpers.ts';
+import { skipSetup } from './helpers.ts';
 
 // what the init scripts below record in the page.
 declare global {
@@ -29,7 +29,7 @@ test('shows a heart rate workout in power once both peaks are set, and remembers
 
     // the next workout is Over Unders (3/2/3/2), planned by heart rate, which warms up at 130 bpm.
     await nav(page, 'Home');
-    await chooseOneOff(page);
+    await skipSetup(page);
     await page.getByRole('link', { name: 'Start workout' }).click();
     const mode = page.getByLabel('Show targets as'),
         effort = page.locator('.current-interval__effort');

@@ -89,6 +89,18 @@ describe('Router', () => {
         expect(transition.mock.calls[1][0].id).toBe('timer');
     });
 
+    it('replaces the current page, without adding to the history', () => {
+        router.init(transition);
+        const length = window.history.length;
+        router.replace('timer/threshold-ladder');
+
+        expect(window.location.pathname).toBe('/app/timer/threshold-ladder');
+        expect(window.history.length).toBe(length);
+        const [to, from] = transition.mock.calls[1];
+        expect(to.id).toBe('timer');
+        expect((from as Route).id).toBe('workouts');
+    });
+
     it.each([
         ['a new tab', () => link('timer/x', { target: '_blank' }), {}],
         ['a modified click', () => link('timer/x'), { metaKey: true }],

@@ -25,9 +25,11 @@ export const Router = (window: Window, knownRoutes: Enumerable<Route>, notFound:
             link.origin === window.location.origin && link.pathname.startsWith(base);
     };
 
+    let changed = () => {};
+
     return {
         init: (transitionTo: Transition) => {
-            const changed = () => {
+            changed = () => {
                 const route = matcher.findRoute(path()) || notFound;
                 transitionTo(route, current);
                 current = route;
@@ -42,6 +44,11 @@ export const Router = (window: Window, knownRoutes: Enumerable<Route>, notFound:
                 }
             });
             window.addEventListener('popstate', changed);
+            changed();
+        },
+        // sends a view on elsewhere in place of the current page, so Back skips it.
+        replace: (to: string) => {
+            window.history.replaceState(null, '', new URL(to, window.document.baseURI));
             changed();
         },
         parameters: () => {

@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
-import { chooseOneOff } from './helpers.ts';
+import { skipSetup } from './helpers.ts';
 
 const sections = (page: Page) => ({
     home: page.locator('#home'),
@@ -8,7 +8,14 @@ const sections = (page: Page) => ({
     timer: page.locator('#timer'),
     edit: page.locator('#edit-workout'),
     notFound: page.locator('#not-found'),
+    guide: page.locator('#guide'),
 });
+
+// each test is a first visit, so home goes on to the guided setup.
+const expectFirstVisitHome = async (page: Page) => {
+    await expect(page).toHaveURL(/\/guide$/);
+    await expectOnlyVisible(page, 'guide');
+};
 
 const workoutItem = (page: Page, title: string) => page.locator('.workout-list__workout', {
     has: page.getByRole('heading', { name: title, exact: true }),
@@ -41,7 +48,7 @@ const expectOnlyVisible = async (page: Page, name: string) => {
 test.describe('routing', () => {
     test('shows the next workout on the home page by default', async ({ page }) => {
         await page.goto('/');
-        await chooseOneOff(page);
+        await skipSetup(page);
 
         await expectOnlyVisible(page, 'home');
         const next = page.locator('.next-workout');
@@ -64,7 +71,7 @@ test.describe('routing', () => {
         await expectOnlyVisible(page, 'notFound');
         await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible();
         await page.locator('#not-found').getByRole('link', { name: 'Go home' }).click();
-        await expectOnlyVisible(page, 'home');
+        await expectFirstVisitHome(page);
     });
 
     test('points nav links at routes under the base path', async ({ page }) => {
@@ -93,7 +100,7 @@ test.describe('routing', () => {
 
     test('keeps the base path when loaded via index.html', async ({ page }) => {
         await page.goto('/index.html');
-        await chooseOneOff(page);
+        await skipSetup(page);
 
         await expectLinkTo(page.getByRole('navigation').getByRole('link', { name: 'Workouts' }), '/workouts');
         await expectLinkTo(page.locator('.next-workout').getByRole('link', { name: 'Start workout' }),
@@ -118,8 +125,8 @@ test.describe('routing', () => {
         await expect(page.locator('.current-interval__action')).toHaveText('Warmup');
 
         await page.getByRole('link', { name: 'Exit workout' }).click();
-        await expect(page).toHaveURL(/\/interval-timer\/$/);
-        await expectOnlyVisible(page, 'home');
+        await expect(page).toHaveURL(/\/interval-timer\/guide$/);
+        await expectOnlyVisible(page, 'guide');
         await expectLinkTo(page.getByRole('navigation').getByRole('link', { name: 'Workouts' }), '/interval-timer/workouts');
     });
 
@@ -136,7 +143,7 @@ test.describe('routing', () => {
 
     test('starts the next workout from the home page', async ({ page }) => {
         await page.goto('/');
-        await chooseOneOff(page);
+        await skipSetup(page);
         await page.getByRole('link', { name: 'Start workout' }).click();
 
         await expect(page).toHaveURL(/\/timer\/over-unders-3-2-3-2$/);
@@ -212,7 +219,7 @@ test.describe('routing', () => {
         await page.goto('/timer/threshold-ladder');
         await page.getByRole('link', { name: 'Exit workout' }).click();
 
-        await expectOnlyVisible(page, 'home');
+        await expectFirstVisitHome(page);
     });
 
     test('follows browser back and forward', async ({ page }) => {
@@ -271,7 +278,7 @@ test.describe('routing', () => {
         await expect(time).not.toHaveText('0:14:00');
 
         await page.getByRole('link', { name: 'Exit workout' }).click();
-        await expectOnlyVisible(page, 'home');
+        await expectFirstVisitHome(page);
         const leftAt = (await time.textContent()) ?? '';
         await page.clock.runFor(5000);
 

@@ -4,8 +4,8 @@ import type { Plan, Workout } from '../types.ts';
 /**
  * The landing page: one big "next workout" to get going with, then a few panels of context.
  *
- * A first visit asks how to train instead. With a guided plan, "next" is the plan's next session; otherwise it
- * follows the library order.
+ * A first visit goes on to the guided setup instead, until it's finished or skipped. With a guided plan, "next" is the
+ * plan's next session; otherwise it follows the library order.
  */
 export const home: ViewBuilder = (el, state, reportError, factory) => {
     const tools = factory.tools(),
@@ -13,6 +13,7 @@ export const home: ViewBuilder = (el, state, reportError, factory) => {
         summarise = factory.summarise(),
         effort = factory.effort(),
         guided = factory.guided(),
+        router = factory.router(),
         workoutStore = factory.store('workout'),
         planStore = factory.store('plan'),
         preferenceStore = factory.store('preferences');
@@ -30,24 +31,6 @@ export const home: ViewBuilder = (el, state, reportError, factory) => {
 
     // a workout or session, with its summary in place of its intervals.
     type Summarised = Omit<Workout, 'intervals' | 'effortMode'> & ReturnType<typeof summarise>;
-
-    // @extend a self-made plan only opens the library for now; it could schedule the rider's own workouts.
-    const renderChooser = () => {
-        const e = tools.escapeHtml;
-        const choice = (tag: string, attrs: string, title: string, text: string) => '<' + tag + ' class="choice" ' + attrs + '>' +
-            '<span class="choice__title">' + e(title) + '</span>' +
-            '<span class="choice__text">' + e(text) + '</span>' +
-        '</' + tag + '>';
-        return '<h1 class="next-workout__title">How do you want to train?</h1>' +
-            '<div class="choices">' +
-                choice('a', 'href="guide"', 'Guided plan',
-                    'New to intervals? Follow a plan built around you.') +
-                choice('a', 'href="workouts" data-start="self"', 'Self-made plan',
-                    'Build your own workouts from the library.') +
-                choice('button', 'type="button" data-start="oneOff"', 'One-off training',
-                    'Pick a workout and go.') +
-            '</div>';
-    };
 
     const renderSession = (session: Summarised, plan: Plan) => {
         const e = tools.escapeHtml;
@@ -116,8 +99,8 @@ export const home: ViewBuilder = (el, state, reportError, factory) => {
         }).join('');
     };
 
-    // a rider who went their own way can still take up a guided plan.
-    const renderLibrary = (workouts: Summarised[], offerGuide: boolean) => {
+    // going back through the guided setup keeps the current plan until a new one is built.
+    const renderLibrary = (workouts: Summarised[]) => {
         const e = tools.escapeHtml;
         const seconds = workouts.map((workout) => workout.seconds);
         const stat = (value: unknown, label: string) => {
@@ -132,45 +115,29 @@ export const home: ViewBuilder = (el, state, reportError, factory) => {
 
         return '<div class="stats">' + stats + '</div>' +
             '<a href="workouts" class="btn">Browse workouts</a>' +
-            (offerGuide ? ' <a href="guide" class="btn">Guided plan</a>' : '');
+            ' <a href="guide" class="btn">Start over</a>';
     };
 
     const render = async () => {
-        const [workouts, prefs] = await Promise.all([loadWorkouts(), preferenceStore.get()]);
+        const workouts = await loadWorkouts();
         plan = await planStore.get();
         const sessions = plan ? guided.next(plan, 1 + upcomingCount).map((session) => ({...session, ...summarise(session)})) : [],
-            choosing = !plan && !prefs.start,
             progress = el.querySelector<HTMLElement>('.home__progress')!;
 
-        el.querySelector('.next-workout .eyebrow')!.textContent = choosing ? 'Welcome' : 'Next workout';
-        el.querySelector('.next-workout__body')!.innerHTML = choosing ? renderChooser()
-            : plan ? renderSession(sessions[0], plan) : renderNext(workouts[0]);
-        el.querySelector<HTMLElement>('.home__upcoming')!.hidden = choosing;
+        el.querySelector('.next-workout__body')!.innerHTML = plan ? renderSession(sessions[0], plan) : renderNext(workouts[0]);
         el.querySelector('.upcoming-list')!.innerHTML = renderUpcoming((plan ? sessions : workouts).slice(1, 1 + upcomingCount));
-        el.querySelector('.library-stats')!.innerHTML = renderLibrary(workouts, !plan && !choosing);
+        el.querySelector('.library-stats')!.innerHTML = renderLibrary(workouts);
         progress.hidden = !plan || plan.results.length < 2;
         if (!progress.hidden) {
             el.querySelector('.progress-stats')!.innerHTML = renderProgress(plan!);
         }
     };
 
-    // the self-made link goes on to the library, while the save finishes behind it.
-    const start = async (choice: string) => {
-        const prefs = await preferenceStore.get();
-        await preferenceStore.save({...prefs, start: choice});
-        if (choice === 'oneOff') {
-            await render();
-        }
-    };
-
     const clicked = (event: Event) => {
-        const target = (event.target as Element).closest('[data-start], [data-done]');
-        if (!target) {
-            return;
+        const done = (event.target as Element).closest('[data-done]')?.getAttribute('data-done');
+        if (done) {
+            planStore.complete(done).then(render).catch((error) => reportError('Could not save your progress. ' + error));
         }
-        const done = target.getAttribute('data-done'),
-            saving = done ? planStore.complete(done).then(render) : start(target.getAttribute('data-start')!);
-        saving.catch((error) => reportError('Could not save your choice. ' + error));
     };
 
     const teardown = () => {
@@ -178,7 +145,13 @@ export const home: ViewBuilder = (el, state, reportError, factory) => {
         el.removeEventListener('click', clicked);
     };
 
+    // the guide marks setup skipped when it's left without a plan, so this only sends a rider there once.
     const setup = async () => {
+        const [saved, prefs] = await Promise.all([planStore.get(), preferenceStore.get()]);
+        if (!saved && !prefs.start) {
+            router.replace('guide');
+            return;
+        }
         await render();
         el.addEventListener('click', clicked);
         el.style.display = 'block';

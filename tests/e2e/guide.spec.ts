@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { chooseOneOff } from './helpers.ts';
+import { skipSetup } from './helpers.ts';
 
 // Each test gets a fresh browser context, so every test starts as a first visit.
 
@@ -8,10 +8,9 @@ const nav = (page: Page, name: string) => page.getByRole('navigation').getByRole
 
 const title = (page: Page) => page.locator('.next-workout__title');
 
-// from the first visit to the test's ready page.
+// from the first visit, which opens the guide, to the test's ready page.
 const startGuided = async (page: Page, metric: string, test: string) => {
     await page.goto('/');
-    await page.getByRole('link', { name: /^Guided plan/ }).click();
     await page.getByRole('button', { name: new RegExp('^' + metric) }).click();
     await page.getByRole('button', { name: new RegExp('^' + test) }).click();
     await expect(page.getByRole('link', { name: 'Start the test' })).toBeVisible();
@@ -23,26 +22,57 @@ const enterResult = async (page: Page, results: Record<string, number>) => {
     }
 };
 
-test('asks how to train on a first visit, and remembers one-off training', async ({ page }) => {
-    await page.goto('/');
-    await expect(title(page)).toHaveText('How do you want to train?');
-    await expect(page.getByRole('link', { name: /^Guided plan/ })).toBeVisible();
-    await expect(page.getByRole('link', { name: /^Self-made plan/ })).toBeVisible();
+const guideTitle = (page: Page) => page.locator('.guide__title');
 
-    await chooseOneOff(page);
+test('opens the guided setup on a first visit', async ({ page }) => {
+    await page.goto('/');
+    await expect(page).toHaveURL(/\/guide$/);
+    await expect(page.locator('.guide .eyebrow')).toHaveText('Welcome');
+    await expect(guideTitle(page)).toHaveText('What can you measure effort with?');
+
+    // nothing is saved yet, so a reload carries on with the setup.
+    await page.getByRole('button', { name: /^Power meter/ }).click();
+    await page.reload();
+    await expect(guideTitle(page)).toHaveText('What can you measure effort with?');
+});
+
+test('skips to home from any step, and lands there from then on', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: /^Power meter/ }).click();
+    await skipSetup(page);
+    await expect(page).toHaveURL(/\/$/);
     await expect(title(page)).toHaveText('Over Unders (3/2/3/2)');
-    await nav(page, 'Workouts');
-    await nav(page, 'Home');
+
+    await page.goto('/');
     await expect(title(page)).toHaveText('Over Unders (3/2/3/2)');
 });
 
-test('opens the library for a self-made plan', async ({ page }) => {
+test('counts leaving by the nav or the workouts link as skipping', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('link', { name: /^Self-made plan/ }).click();
+    await page.getByRole('link', { name: 'browse the workouts' }).click();
     await expect(page.locator('#workouts')).toBeVisible();
-
     await nav(page, 'Home');
     await expect(title(page)).toHaveText('Over Unders (3/2/3/2)');
+
+    await page.goto('/');
+    await expect(title(page)).toHaveText('Over Unders (3/2/3/2)');
+});
+
+test('starts over from home, keeping the plan until a new one is built', async ({ page }) => {
+    await page.goto('/');
+    await skipSetup(page);
+    await page.getByRole('link', { name: 'Start over' }).click();
+    await expect(guideTitle(page)).toHaveText('What can you measure effort with?');
+    await expect(page.locator('.guide .eyebrow')).toHaveText('Guided plan');
+
+    await page.getByRole('button', { name: /^Just how it feels/ }).click();
+    await page.getByRole('button', { name: 'Build my plan' }).click();
+    await page.getByRole('link', { name: 'See your plan' }).click();
+    await expect(title(page)).toHaveText('Block 1, week 1: Threshold');
+
+    await page.getByRole('link', { name: 'Start over' }).click();
+    await page.getByRole('link', { name: 'Skip to home' }).click();
+    await expect(title(page)).toHaveText('Block 1, week 1: Threshold');
 });
 
 test('calibrates a power meter with the ramp test, then sets targets in watts', async ({ page }) => {
@@ -76,7 +106,6 @@ test('calibrates a power meter with the ramp test, then sets targets in watts', 
 
 test('plans by feel straight away, with no test', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('link', { name: /^Guided plan/ }).click();
     await page.getByRole('button', { name: /^Just how it feels/ }).click();
 
     await expect(page.getByRole('button', { name: /^Ramp test/ })).toHaveCount(0);
@@ -93,7 +122,6 @@ test('plans by feel straight away, with no test', async ({ page }) => {
 
 test('plans by feel around exact times, and says what a slot can\'t hold', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('link', { name: /^Guided plan/ }).click();
     await page.getByRole('button', { name: /^Just how it feels/ }).click();
 
     await page.getByText('Choose exact times instead').click();
