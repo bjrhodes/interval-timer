@@ -20,6 +20,7 @@ import { WakeLock } from './utilities/wake-lock.ts';
 import { editWorkout } from './views/editworkout.ts';
 import { guide } from './views/guide.ts';
 import { home } from './views/home.ts';
+import { notFound } from './views/notfound.ts';
 import { preferences } from './views/preferences.ts';
 import { timer } from './views/timer.ts';
 import { workouts } from './views/workouts.ts';
@@ -31,10 +32,12 @@ export type ViewBuilder = (el: HTMLElement, state: State, reportError: Reporter,
 
 export interface Config {
     routes: Enumerable<Route>;
+    // shown for a path no route matches.
+    notFound: Route;
 }
 
 // routes and stores refer to these by name.
-const views: Record<ViewName, ViewBuilder> = { editWorkout, guide, home, preferences, timer, workouts };
+const views: Record<ViewName, ViewBuilder> = { editWorkout, guide, home, notFound, preferences, timer, workouts };
 const stores = { workout, preferences: preferenceStore, plan };
 
 type Stores = { [K in keyof typeof stores]: ReturnType<typeof stores[K]> };
@@ -69,7 +72,7 @@ export const Factory = (config: Config, state: State, document?: Document) => {
 
     const router = () => {
         if (!cached.router) {
-            cached.router = Router(window, config.routes);
+            cached.router = Router(window, config.routes, config.notFound);
         }
 
         return cached.router;

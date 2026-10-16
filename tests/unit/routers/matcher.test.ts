@@ -19,8 +19,8 @@ describe('Matcher', () => {
             expect(idOf(hash)).toBe(id);
         });
 
-        it('falls back to the empty route for anything unknown', () => {
-            expect(idOf('not-a-real-page')).toBe('workouts');
+        it('finds no route for anything unknown', () => {
+            expect(matcher.findRoute('not-a-real-page')).toBe(false);
         });
 
         it('matches the route already being shown, so its parameters can change', () => {

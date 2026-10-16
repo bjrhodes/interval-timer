@@ -4,6 +4,7 @@ import type { Route } from '../../../src/types.ts';
 import { routes } from './routes.ts';
 
 describe('Router', () => {
+    const notFound: Route = { path: '', view: 'notFound', id: 'not-found' };
     let router: ReturnType<typeof Router>, transition: Mock<Transition>, links: HTMLElement;
 
     const link = (href: string, attributes: Record<string, string> = {}) => {
@@ -32,7 +33,7 @@ describe('Router', () => {
         document.body.innerHTML = '<div id="links"></div>';
         links = document.getElementById('links')!;
         window.history.replaceState(null, '', '/app/');
-        router = Router(window, routes());
+        router = Router(window, routes(), notFound);
         transition = vi.fn<Transition>();
     });
 
@@ -51,6 +52,13 @@ describe('Router', () => {
         expect(transition).toHaveBeenCalledOnce();
         expect(transition.mock.calls[0][0].id).toBe('timer');
         expect(router.parameters()).toEqual(['timer', 'threshold-ladder']);
+    });
+
+    it('transitions to the not found route for an unknown path', () => {
+        window.history.replaceState(null, '', '/app/not-a-real-page');
+        router.init(transition);
+
+        expect(transition.mock.calls[0][0]).toBe(notFound);
     });
 
     it('follows links in the app, passing the route being left', () => {
@@ -75,10 +83,10 @@ describe('Router', () => {
 
     it('transitions on browser back and forward', () => {
         router.init(transition);
-        window.history.replaceState(null, '', '/app/workouts');
+        window.history.replaceState(null, '', '/app/timer/threshold-ladder');
         window.dispatchEvent(new PopStateEvent('popstate'));
 
-        expect(transition.mock.calls[1][0].id).toBe('workouts');
+        expect(transition.mock.calls[1][0].id).toBe('timer');
     });
 
     it.each([

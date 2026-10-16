@@ -4,7 +4,7 @@ import { enumerable } from '../../src/utilities/enumerable.ts';
 import type { Route, Workout } from '../../src/types.ts';
 
 describe('Factory', () => {
-    const factory = () => Factory({ routes: enumerable<Route>([]) }, {}, document);
+    const factory = () => Factory({ routes: enumerable<Route>([]), notFound: { path: '', view: 'notFound', id: 'not-found' } }, {}, document);
 
     describe('store', () => {
         it('hands every caller the same store', () => {

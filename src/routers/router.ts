@@ -7,7 +7,7 @@ export type Transition = (to: Route, from: Route | '') => void;
 /**
  * Routes on the path below the page's <base href>, e.g. "timer/threshold-ladder" at "/interval-timer/timer/threshold-ladder".
  */
-export const Router = (window: Window, knownRoutes: Enumerable<Route>) => {
+export const Router = (window: Window, knownRoutes: Enumerable<Route>, notFound: Route) => {
     let current: Route | '' = '';
     const matcher = Matcher(knownRoutes),
         base = new URL(window.document.baseURI).pathname;
@@ -28,11 +28,9 @@ export const Router = (window: Window, knownRoutes: Enumerable<Route>) => {
     return {
         init: (transitionTo: Transition) => {
             const changed = () => {
-                const route = matcher.findRoute(path());
-                if (route) {
-                    transitionTo(route, current);
-                    current = route;
-                }
+                const route = matcher.findRoute(path()) || notFound;
+                transitionTo(route, current);
+                current = route;
             };
 
             window.document.addEventListener('click', (event) => {

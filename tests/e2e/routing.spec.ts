@@ -7,6 +7,7 @@ const sections = (page: Page) => ({
     workouts: page.locator('#workouts'),
     timer: page.locator('#timer'),
     edit: page.locator('#edit-workout'),
+    notFound: page.locator('#not-found'),
 });
 
 const workoutItem = (page: Page, title: string) => page.locator('.workout-list__workout', {
@@ -57,9 +58,12 @@ test.describe('routing', () => {
         await expect(workoutItem(page, 'Threshold Ladder')).toContainText('1 hour, 2 minutes');
     });
 
-    test('falls back to the home page for an unknown route', async ({ page }) => {
+    test('shows a not found page for an unknown route', async ({ page }) => {
         await page.goto('/not-a-real-page');
 
+        await expectOnlyVisible(page, 'notFound');
+        await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible();
+        await page.locator('#not-found').getByRole('link', { name: 'Go home' }).click();
         await expectOnlyVisible(page, 'home');
     });
 

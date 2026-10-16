@@ -54,3 +54,7 @@
 ## Run throwaway TypeScript with Node, not vitest pointed outside the repo
 - **What happened:** `npx vitest run --root / <scratchpad>/x.test.ts` made vitest crawl the whole filesystem, and it hung until stopped.
 - **Rule:** for a quick look at what a module produces, write a plain script in the scratchpad that imports by absolute path and run it with `node --experimental-strip-types --no-warnings <script>.ts`. Never set a test runner's root above the repo.
+
+## Narrowing a catch-all route breaks paths that quietly relied on it
+- **What happened:** anchoring the home route (`""` → `/^$/`) for the 404 page left `/index.html` and a unit test's `/app/workouts` with no route. Both had only ever worked because `""` matched everything.
+- **Rule:** before narrowing a route, list every path the tests and servers use (`index.html`, base path with and without a trailing slash) and check each still has an explicit match.

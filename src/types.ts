@@ -68,7 +68,7 @@ export interface Plan {
     completed: string[];
 }
 
-export type ViewName = 'editWorkout' | 'guide' | 'home' | 'preferences' | 'timer' | 'workouts';
+export type ViewName = 'editWorkout' | 'guide' | 'home' | 'notFound' | 'preferences' | 'timer' | 'workouts';
 
 export interface Route {
     path: string | RegExp;

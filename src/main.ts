@@ -6,7 +6,8 @@ const config = {
     // `nav` is the main nav item to highlight; the timer has none, as it hides the nav to stay distraction free.
     routes: enumerable<Route>([
         {
-            path: "",
+            // the bare base path, or index.html when a server or bookmark names it.
+            path: /^(index\.html)?$/,
             view: "home",
             id: "home",
             nav: "home",
@@ -47,6 +48,12 @@ const config = {
             description: "Effort conversions",
         },
     ]),
+    notFound: {
+        path: "",
+        view: "notFound",
+        id: "not-found",
+        description: "Page not found",
+    } satisfies Route,
 },
     state = { workouts: document.getElementById("workouts") },
     factory = Factory(config, state);
