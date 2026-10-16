@@ -91,6 +91,28 @@ test('plans by feel straight away, with no test', async ({ page }) => {
     await expect(page.getByLabel('Show targets as')).toBeHidden();
 });
 
+test('plans by feel around exact times, and says what a slot can\'t hold', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('link', { name: /^Guided plan/ }).click();
+    await page.getByRole('button', { name: /^Just how it feels/ }).click();
+
+    await page.getByText('Choose exact times instead').click();
+    await page.getByLabel('Tuesday, first ride').selectOption('20');
+    await page.getByRole('button', { name: 'Build my plan' }).click();
+    await expect(page.getByRole('alert')).toHaveText('Pick at least two days, one with 30 minutes or more.');
+
+    await page.getByLabel('Tuesday, first ride').selectOption('60');
+    await page.getByLabel('Thursday, first ride').selectOption('45');
+    await page.getByLabel('Saturday, first ride').selectOption('120');
+    await page.getByLabel('Saturday, second ride').selectOption('30');
+    await page.getByRole('button', { name: 'Build my plan' }).click();
+    await expect(page.getByRole('heading', { name: 'Your plan is ready' })).toBeVisible();
+    await expect(page.getByText(/^Rides on Tuesday, Thursday and Saturday/)).toBeVisible();
+    await page.getByRole('link', { name: 'See your plan' }).click();
+
+    await expect(title(page)).toHaveText('Block 1, week 1, Tue: Threshold');
+});
+
 test('moves on when a session is finished in the timer or marked done', async ({ page }) => {
     await startGuided(page, 'Heart rate monitor', 'Ramp test');
     await page.getByRole('link', { name: 'Enter result' }).click();

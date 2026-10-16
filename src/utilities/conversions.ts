@@ -127,6 +127,7 @@ export const conversions = {
     defaults: defaults,
     sections: sections,
     curveFromPeak: curveFromPeak,
+    valueOn: valueOn,
     convert: convert,
     available: available,
 };

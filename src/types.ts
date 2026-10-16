@@ -60,6 +60,8 @@ export interface Plan {
     // null by feel, which has nothing to calibrate.
     test: TestId | null;
     sessionsPerWeek?: number;
+    // exact availability instead: 7 days, Monday first, each with 0-2 slot lengths in minutes.
+    slots?: number[][];
     level: number;
     block: number;
     results: TestResult[];

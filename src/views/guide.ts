@@ -6,7 +6,7 @@ type Step = 'metric' | 'sessions' | 'test' | 'ready';
 
 /**
  * Starts a guided plan: what the rider measures effort with, which test to calibrate by, then off to the test. By
- * feel there's nothing to calibrate, so it asks the sessions a week and builds the plan straight away.
+ * feel there's nothing to calibrate, so it asks the sessions a week, or exact times, and builds the plan straight away.
  * `guide/result` takes the test's result, which builds the plan, or moves it on to its next block after a retest.
  */
 export const guide: ViewBuilder = (el, state, reportError, factory) => {
@@ -34,6 +34,9 @@ export const guide: ViewBuilder = (el, state, reportError, factory) => {
     const e = (str: unknown) => tools.escapeHtml(str);
 
     const measured = (mode: string) => mode !== 'perceived';
+
+    // whether the plan knows how often the rider can ride.
+    const planned = (plan: Plan) => !!(plan.sessionsPerWeek || plan.slots);
 
     // only asked of measured modes, which are all numeric.
     const unitOf = (mode: string) => (effort.mode(mode) as NumericMode).unit;
@@ -81,7 +84,22 @@ export const guide: ViewBuilder = (el, state, reportError, factory) => {
         '</select>' +
         '<p id="guide-sessions-help" class="muted">A session is one ride, warm-up included. They start at about 30 ' +
             'minutes and build towards an hour or more as you level up.</p>' +
-    '</div>';
+    '</div>' +
+    '<details class="guide__times">' +
+        '<summary>Choose exact times instead</summary>' +
+        '<p class="muted">How long you have each day, with up to two rides a day. Hard sessions go on your longer ' +
+            'days, never two in a row, with easy spins between.</p>' +
+        '<div class="guide__days">' + guided.days.map((day, i) => '<div class="guide__day">' +
+            '<span class="guide__day-name" aria-hidden="true">' + e(day.slice(0, 3)) + '</span>' +
+            ['first', 'second'].map((which, n) => '<select id="guide-slot-' + i + '-' + n + '" class="input select" aria-label="' +
+                e(day + ', ' + which + ' ride') + '">' +
+                '<option value="">' + (n ? '—' : 'Rest') + '</option>' +
+                [20, 30, 45, 60, 75, 90, 120, 180].map((m) => '<option value="' + m + '">' +
+                    e(m < 60 ? m + ' min' : Math.floor(m / 60) + ' h' + (m % 60 ? ' ' + m % 60 : '')) + '</option>').join('') +
+            '</select>').join('') +
+        '</div>').join('') + '</div>' +
+        '<p id="guide-slots-error" class="guide__note" role="alert" hidden>Pick at least two days, one with 30 minutes or more.</p>' +
+    '</details>';
 
     const renderSessions = () => '<p class="eyebrow">Guided plan</p>' +
         '<h1 class="guide__title">How often can you ride?</h1>' +
@@ -129,18 +147,33 @@ export const guide: ViewBuilder = (el, state, reportError, factory) => {
                         '<span class="effort-numeric__unit">' + e(unitOf(plan.mode)) + '</span>' +
                     '</div>' +
                 '</div>' : '') +
-                (plan.sessionsPerWeek ? '' : sessionsField) +
+                (planned(plan) ? '' : sessionsField) +
                 '<button type="submit" class="btn btn--primary btn--large">' +
-                    e(plan.sessionsPerWeek ? 'Save result' : 'Build my plan') + '</button>' +
+                    e(planned(plan) ? 'Save result' : 'Build my plan') + '</button>' +
             '</form>';
+    };
+
+    // e.g. "Tuesday, Thursday and Saturday".
+    const listOf = (items: string[]) => items.slice(0, -1).join(', ') + (items.length > 1 ? ' and ' : '') + items[items.length - 1];
+
+    const schedule = (plan: Plan) => {
+        if (!plan.slots) {
+            return plan.sessionsPerWeek + ' sessions a week, in 4-week blocks at level ' + plan.level + '. ' +
+                'Do them in order, with a rest day after the hard ones. ';
+        }
+        const rest = guided.restDay(plan.slots);
+        return 'Rides on ' + listOf(guided.days.filter((day, i) => plan.slots![i].length && i !== rest)) +
+            ', in 4-week blocks at level ' + plan.level + '. Each session fits the time you have, with hard days ' +
+            'kept apart and easy spins between. ' +
+            (rest >= 0 ? guided.days[rest] + ' is kept as a rest day: rest is where your body repairs and gets fitter. ' : '') +
+            'If you miss a day, just do the next session. ';
     };
 
     const renderDone = (plan: Plan) => {
         const first = plan.block === 1;
         return '<p class="eyebrow">Guided plan</p>' +
             '<h1 class="guide__title">' + e(first ? 'Your plan is ready' : 'Block ' + plan.block + ' is ready') + '</h1>' +
-            '<p>' + e(plan.sessionsPerWeek + ' sessions a week, in 4-week blocks at level ' + plan.level + '. ' +
-                'Do them in order, with a rest day after the hard ones. ' +
+            '<p>' + e(schedule(plan) +
                 (plan.test ? 'The last week eases off into your next test.' : 'The last week is a rest week, then the next block steps up a level.')) + '</p>' +
             (measured(plan.mode) ? '<p class="muted">Your targets are now set from your test, and shown in ' +
                 e(unitOf(plan.mode)) + '.</p>' : '') +
@@ -179,9 +212,21 @@ export const guide: ViewBuilder = (el, state, reportError, factory) => {
         }
     };
 
+    // exact times when they're open and set, otherwise sessions a week; null for times no plan can be built on.
+    const availabilityOf = (form: HTMLFormElement) => {
+        const sessions = form.querySelector<HTMLSelectElement>('#guide-sessions')!,
+            slots = guided.days.map((day, i) => [0, 1]
+                .map((n) => parseInt(form.querySelector<HTMLSelectElement>('#guide-slot-' + i + '-' + n)!.value, 10))
+                .filter((length) => length > 0));
+        if (!form.querySelector('details')!.open || !slots.some((day) => day.length)) {
+            return {sessionsPerWeek: parseInt(sessions.value, 10)};
+        }
+        return guided.validSlots(slots) ? {slots: slots} : null;
+    };
+
     // by feel, targets show as effort out of 10 whatever the rider showed them in before.
-    const startByFeel = async (sessions: HTMLSelectElement) => {
-        const plan = guided.create(choice.mode!, null, parseInt(sessions.value, 10)),
+    const startByFeel = async (availability: {sessionsPerWeek?: number, slots?: number[][]}) => {
+        const plan = guided.create(choice.mode!, null, availability.sessionsPerWeek, availability.slots),
             prefs = await preferenceStore.get();
         await Promise.all([planStore.save(plan), preferenceStore.save({...prefs, timerMode: plan.mode})]);
         body.innerHTML = renderDone(plan);
@@ -192,14 +237,21 @@ export const guide: ViewBuilder = (el, state, reportError, factory) => {
         const form = event.target as HTMLFormElement,
             value = form.querySelector<HTMLInputElement>('#guide-value'),
             // only asked when the plan doesn't know it yet.
-            sessions = form.querySelector<HTMLSelectElement>('#guide-sessions')!;
+            availability = form.querySelector('#guide-sessions') ? availabilityOf(form) : {},
+            error = form.querySelector<HTMLElement>('#guide-slots-error');
+        if (error) {
+            error.hidden = !!availability;
+        }
+        if (!availability) {
+            return;
+        }
         if (step === 'sessions') {
-            return startByFeel(sessions);
+            return startByFeel(availability);
         }
         const [plan, prefs] = await Promise.all([planStore.get(), preferenceStore.get()]);
         const result = guided.applyResult(
             // the form is only offered with a plan.
-            {...plan!, sessionsPerWeek: plan!.sessionsPerWeek || parseInt(sessions.value, 10)},
+            {...plan!, ...availability},
             prefs,
             {steps: parseInt(form.querySelector<HTMLInputElement>('#guide-steps')!.value, 10), value: value ? parseInt(value.value, 10) : null},
             new Date().toISOString().slice(0, 10));

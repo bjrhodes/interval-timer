@@ -1,10 +1,12 @@
 import { conversions } from '../utilities/conversions.ts';
 import { effort, type ModeId } from '../utilities/effort.ts';
+import { format } from '../utilities/format.ts';
 import type { Curve, Interval, Plan, Preferences, TestId, Workout } from '../types.ts';
 
 interface Template {
     name: string;
-    intervals: (level: number, week: number) => Interval[];
+    // minutes, when the session has a slot to fit: a hard session shrinks to fit it, an easy one fills it.
+    intervals: (level: number, week: number, budget?: number) => Interval[];
 }
 
 /**
@@ -15,14 +17,26 @@ interface Template {
  * Every session is planned in perceived effort, so the conversion curves the tests set show it in whatever the rider
  * measures with, and a retest that moves a curve moves every later target with it.
  *
- * The plan record is `{mode, test, sessionsPerWeek, level, block, results, completed}`, with no `test` by feel. Sessions aren't stored: each
- * is built from the record and its id, `plan-test` for the first test or `plan-b{block}-w{week}-s{n}` after it.
+ * A rider can give exact availability instead of sessions a week: up to two slots a day, each a number of minutes.
+ * Each week then puts its hard sessions on the longest days, never two in a row, fills the other slots with easy
+ * spins sized to the week's training load, and keeps a day free for rest even when every day is offered.
+ *
+ * The plan record is `{mode, test, sessionsPerWeek or slots, level, block, results, completed}`, with no `test` by
+ * feel. Sessions aren't stored: each is built from the record and its id, `plan-test` for the first test or
+ * `plan-b{block}-w{week}-s{n}` after it.
  */
 
 const WEEKS = 4;
 const MAX_LEVEL = 6;
 // the talk test stops where talking gets hard, which the default curves put at RPE 6.
 const TALK_RPE = 6;
+// the shortest slot a hard session fits in, and the test with its warm-up and cool-down.
+const HARD_MINUTES = 30;
+const TEST_MINUTES = 35;
+// the shortest easy spin, and the most hard sessions in a week.
+const EASY_MINUTES = 20;
+const MAX_HARD = 3;
+const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 const minutes = (action: string, time: number, rpe: number): Interval => ({action: action, time: time, unit: 'minutes', effort: rpe});
 
@@ -30,6 +44,10 @@ const repeat = <T>(times: number, fn: (n: number) => T | T[]) => Array.from({len
 
 const warmup = minutes('Warm up: easy spin', 10, 3);
 const cooldown = minutes('Cool down: easy spin', 5, 2);
+
+// the most reps of work and recovery that fit a budget around the warm-up and cool-down, and never fewer than one.
+const fit = (reps: number, work: number, recover: number, budget = Infinity) =>
+    Math.max(1, Math.min(reps, Math.floor((budget - warmup.time - cooldown.time + recover) / (work + recover))));
 
 const stepsOf = (count: number, from: number, to: number) => repeat(count, (n) => Math.round(from + (to - from) * (n - 1) / (count - 1)));
 
@@ -54,9 +72,10 @@ const tests: Record<TestId, Template & {steps: number}> = {
 const sessions: Record<string, Template> = {
     threshold: {
         name: 'Threshold',
-        intervals: (level, week) => {
-            const reps = level >= 4 ? 3 : 2,
-                work = Math.min(20, 6 + 2 * (level - 1) + 2 * (week - 1));
+        intervals: (level, week, budget = Infinity) => {
+            // a short slot shortens the efforts, down to the 6 minutes they start at, before it drops one.
+            const reps = fit(level >= 4 ? 3 : 2, 6, 4, budget),
+                work = Math.min(20, 6 + 2 * (level - 1) + 2 * (week - 1), Math.floor((budget - warmup.time - cooldown.time - 4 * (reps - 1)) / reps));
             return [warmup].concat(
                 repeat(reps, (n) => [minutes('Threshold ' + n + ' of ' + reps + ': hard but steady', work, 7)]
                     .concat(n < reps ? [minutes('Recover', 4, 2)] : [])),
@@ -65,9 +84,9 @@ const sessions: Record<string, Template> = {
     },
     vo2: {
         name: 'VO2 max',
-        intervals: (level, week) => {
-            const reps = 4 + Math.floor(level / 2) + (week - 1),
-                work = level < 3 ? 2 : 3;
+        intervals: (level, week, budget) => {
+            const work = level < 3 ? 2 : 3,
+                reps = fit(4 + Math.floor(level / 2) + (week - 1), work, work, budget);
             return [warmup].concat(
                 repeat(reps, (n) => [minutes('Effort ' + n + ' of ' + reps + ': very hard', work, 9)]
                     .concat(n < reps ? [minutes('Recover', work, 2)] : [])),
@@ -76,15 +95,16 @@ const sessions: Record<string, Template> = {
     },
     endurance: {
         name: 'Endurance',
-        intervals: (level, week) => [
-            minutes('Endurance: steady, you could hold a conversation', Math.min(120, 30 + 10 * (level - 1) + 10 * (week - 1)), 4),
+        intervals: (level, week, budget) => [
+            minutes('Endurance: steady, you could hold a conversation', budget ?? Math.min(120, 30 + 10 * (level - 1) + 10 * (week - 1)), 4),
         ],
     },
     overUnders: {
         name: 'Over-unders',
-        intervals: (level, week) => {
-            const sets = 2 + Math.floor((level - 1) / 2),
-                pairs = 1 + week;
+        intervals: (level, week, budget = Infinity) => {
+            // each pair is 2 minutes under and 1 over.
+            const pairs = Math.max(1, Math.min(1 + week, Math.floor((budget - warmup.time - cooldown.time) / 3))),
+                sets = fit(2 + Math.floor((level - 1) / 2), pairs * 3, 4, budget);
             return [warmup].concat(
                 repeat(sets, (set) => repeat(pairs, () => [
                     minutes('Under (set ' + set + ' of ' + sets + '): comfortably hard', 2, 6),
@@ -95,11 +115,15 @@ const sessions: Record<string, Template> = {
     },
     easy: {
         name: 'Easy spin',
-        intervals: () => [minutes('Easy spin: recover for the test', 30, 3)],
+        intervals: (level, week, budget) => [minutes('Easy spin: recover for the test', budget ?? 30, 3)],
     },
     recovery: {
         name: 'Recovery spin',
-        intervals: () => [minutes('Easy spin: rest week, let the training sink in', 30, 3)],
+        intervals: (level, week, budget) => [minutes('Easy spin: rest week, let the training sink in', budget ?? 30, 3)],
+    },
+    spin: {
+        name: 'Easy spin',
+        intervals: (level, week, budget) => [minutes('Easy spin: keep it light, this is recovery between hard days', budget ?? 30, 3)],
     },
     openers: {
         name: 'Openers',
@@ -130,7 +154,7 @@ const weeks: Record<'build' | 'test' | 'rest', Record<number, string[]>> = {
 
 const idOf = (block: number, week: number, n: number) => 'plan-b' + block + '-w' + week + '-s' + n;
 
-const build = (plan: Plan, id: string, kind: string, week: number, title: string): Workout => {
+const build = (plan: Plan, id: string, kind: string, week: number, title: string, budget?: number): Workout => {
     // only a plan with a test has test sessions.
     const isTest = kind === 'test',
         template = isTest ? tests[plan.test!] : sessions[kind];
@@ -138,10 +162,106 @@ const build = (plan: Plan, id: string, kind: string, week: number, title: string
         id: id,
         title: title + template.name,
         effortMode: 'perceived',
-        intervals: template.intervals(plan.level, week),
+        intervals: template.intervals(plan.level, week, budget),
         plan: true,
         test: isTest,
     };
+};
+
+const { timeInSeconds } = format();
+
+// training load (TSS): hours times intensity squared, times 100. Intensity is the target's share of FTP on the default
+// power curve, where FTP is about 75% of ramp peak, so an hour at RPE 7 is about 100.
+const loadOf = (intervals: Interval[]) => intervals.reduce((total, interval) =>
+    total + timeInSeconds(interval.time, interval.unit) / 3600 * (conversions.valueOn(conversions.defaults.power, interval.effort ?? 1) / 75) ** 2 * 100, 0);
+
+// the load a week aims for: it grows through the build weeks and eases off in the last.
+const weekLoad = (level: number, week: number) => (150 + 50 * (level - 1)) * (week < WEEKS ? 1 + 0.07 * (week - 1) : 0.6);
+
+const HARD = ['threshold', 'vo2', 'overUnders'];
+const SPINS = ['spin', 'easy', 'recovery'];
+
+const sum = (values: number[]) => values.reduce((total, value) => total + value, 0);
+
+// availability a plan can be built on: 7 days of up to two slots, at least two days, and one slot for a hard session.
+const validSlots = (slots?: number[][] | null): slots is number[][] => !!slots && slots.length === 7 &&
+    slots.every((day) => day.length <= 2 && day.every((length) => length > 0)) &&
+    slots.filter((day) => day.length).length >= 2 &&
+    slots.some((day) => day.some((length) => length >= HARD_MINUTES));
+
+// a rider who offers every day still gets one off, the day with least time; -1 when there's a day off already.
+const restDay = (slots: number[][]) => {
+    const totals = slots.map(sum);
+    return totals.every((total) => total > 0) ? totals.lastIndexOf(Math.min(...totals)) : -1;
+};
+
+const near = (a: number, b: number) => (a - b + 7) % 7 === 1 || (b - a + 7) % 7 === 1;
+
+// what each day's longest slot holds this week; any other slot on a day is an easy spin.
+const kindsOf = (plan: Plan, slots: number[][], week: number) => {
+    const rest = restDay(slots),
+        days = repeat(7, (n) => n - 1).filter((day) => slots[day].length && day !== rest),
+        // a tie goes to the later day, so long rides land on the weekend.
+        longest = [...days].sort((a, b) => slots[b][0] - slots[a][0] || b - a),
+        kinds: Record<number, string> = {};
+    if (week === WEEKS && plan.test) {
+        // the test ends the block on a day it fits, with openers the ride before.
+        const testDay = days.filter((day) => slots[day][0] >= TEST_MINUTES).pop() ?? longest[0],
+            before = days.filter((day) => day < testDay).pop();
+        days.forEach((day) => kinds[day] = 'easy');
+        if (before !== undefined && slots[before][0] >= HARD_MINUTES) {
+            kinds[before] = 'openers';
+        }
+        kinds[testDay] = 'test';
+        return kinds;
+    }
+    // as with sessions a week, three days or more get a long ride, on the longest day, if another can still go hard.
+    const fits = longest.filter((day) => slots[day][0] >= HARD_MINUTES),
+        endurance = days.length > 2 && fits.length > 1 ? longest[0] : undefined,
+        hard = fits.filter((day) => day !== endurance)
+            .reduce((chosen: number[], day) => chosen.length < MAX_HARD && !chosen.some((other) => near(day, other))
+                ? chosen.concat([day]) : chosen, [])
+            .sort((a, b) => a - b);
+    days.forEach((day) => kinds[day] = 'spin');
+    hard.forEach((day, i) => kinds[day] = HARD[i]);
+    if (endurance !== undefined) {
+        kinds[endurance] = 'endurance';
+    }
+    // a rest week keeps the long ride, and the rest is easy.
+    if (week === WEEKS) {
+        days.forEach((day) => kinds[day] = kinds[day] === 'endurance' ? 'endurance' : 'recovery');
+    }
+    return kinds;
+};
+
+// a week of sessions fitted to the rider's slots. Hard sessions take their slot. The long ride takes what's left of the
+// week's load after a short spin on each easy slot, but never less than its usual length for the level, then the
+// spins share out any more by slot length.
+const slotted = (plan: Plan, week: number) => {
+    const slots = plan.slots!.map((day) => [...day].sort((a, b) => b - a)),
+        kinds = kindsOf(plan, slots, week),
+        second = week < WEEKS ? 'spin' : plan.test ? 'easy' : 'recovery',
+        rides = Object.keys(kinds).map(Number).flatMap((day) => slots[day].map((length, n) => ({day: day, length: length, kind: n ? second : kinds[day]})))
+            .sort((a, b) => a.day - b.day),
+        load = (kind: string, budget: number) => loadOf(build(plan, '', kind, week, '', budget).intervals),
+        shortest = (length: number) => Math.min(length, EASY_MINUTES),
+        // the minutes, to the nearest 5, that come to a load, within the slot.
+        sized = (ride: typeof rides[number], target: number, least = shortest(ride.length)) =>
+            Math.min(ride.length, Math.max(least, 5 * Math.round(target / load(ride.kind, 60) * 60 / 5))),
+        long = rides.find((ride) => ride.kind === 'endurance'),
+        spins = rides.filter((ride) => SPINS.includes(ride.kind)),
+        budgets = new Map(rides.map((ride) => [ride, ride.length])),
+        spare = weekLoad(plan.level, week) - sum(rides.filter((ride) => ride !== long && !spins.includes(ride)).map((ride) => load(ride.kind, ride.length)));
+    if (long) {
+        budgets.set(long, sized(long, spare - sum(spins.map((ride) => load(ride.kind, shortest(ride.length)))),
+            // a rest week's is no longer than the block's first.
+            sessions.endurance.intervals(plan.level, week < WEEKS ? week : 1)[0].time));
+    }
+    const left = spare - (long ? load(long.kind, budgets.get(long)!) : 0),
+        spinMinutes = sum(spins.map((ride) => ride.length));
+    spins.forEach((ride) => budgets.set(ride, sized(ride, left * ride.length / spinMinutes)));
+    return rides.map((ride, i) => build(plan, idOf(plan.block, week, i + 1), ride.kind, week,
+        'Block ' + plan.block + ', week ' + week + ', ' + DAYS[ride.day].slice(0, 3) + ': ', budgets.get(ride)));
 };
 
 // every session in the plan's current block, in order.
@@ -149,7 +269,7 @@ const block = (plan: Plan) => {
     if (!plan.block) {
         return [build(plan, 'plan-test', 'test', 0, '')];
     }
-    return repeat(WEEKS, (week) => (week < WEEKS ? weeks.build : plan.test ? weeks.test : weeks.rest)[plan.sessionsPerWeek!].map((kind, i) =>
+    return repeat(WEEKS, (week) => plan.slots ? slotted(plan, week) : (week < WEEKS ? weeks.build : plan.test ? weeks.test : weeks.rest)[plan.sessionsPerWeek!].map((kind, i) =>
         build(plan, idOf(plan.block, week, i + 1), kind, week, 'Block ' + plan.block + ', week ' + week + ': ')));
 };
 
@@ -157,10 +277,14 @@ const workout = (plan: Plan, id: string) => block(plan).find((session) => sessio
 
 const next = (plan: Plan, count: number) => block(plan).filter((session) => !plan.completed.includes(session.id)).slice(0, count);
 
-// a plan by feel skips the test and starts on its first block, so it needs the sessions a week up front.
-const create = (mode: string, test: string | null, sessionsPerWeek?: number): Plan => effort.mode(mode).id === 'perceived'
-    ? {mode: 'perceived', test: null, sessionsPerWeek: sessionsPerWeek && weeks.build[sessionsPerWeek] ? sessionsPerWeek : 3,
-        block: 1, level: 1, results: [], completed: []}
+// how often a plan rides: exact slots when they're usable, otherwise sessions a week, 3 unless told.
+const availability = (sessionsPerWeek?: number, slots?: number[][] | null) => validSlots(slots)
+    ? {slots: slots}
+    : {sessionsPerWeek: sessionsPerWeek && weeks.build[sessionsPerWeek] ? sessionsPerWeek : 3};
+
+// a plan by feel skips the test and starts on its first block, so it needs its availability up front.
+const create = (mode: string, test: string | null, sessionsPerWeek?: number, slots?: number[][] | null): Plan => effort.mode(mode).id === 'perceived'
+    ? {mode: 'perceived', test: null, ...availability(sessionsPerWeek, slots), block: 1, level: 1, results: [], completed: []}
     : {mode: effort.mode(mode).id, test: tests[test as TestId] ? test as TestId : 'ramp', block: 0, level: 1, results: [], completed: []};
 
 // marks a session done; without a test to move it on, a block's last session starts the next block a level up.
@@ -226,7 +350,11 @@ const applyResult = (plan: Plan, prefs: Preferences, result: {steps: number, val
 };
 
 export const guided = {
+    days: DAYS,
     tests: tests,
+    loadOf: loadOf,
+    validSlots: validSlots,
+    restDay: restDay,
     create: create,
     block: block,
     workout: workout,

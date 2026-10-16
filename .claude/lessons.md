@@ -50,3 +50,7 @@
 ## A reused dev server serves a stale build
 - **What happened:** Playwright's `reuseExistingServer` picked up a server already on :4173, which served the old compiled JS, so a new e2e assertion failed against markup I'd already changed.
 - **Rule:** run `npm run build` before `npx playwright test` whenever a server may already be running, and don't kill a server I didn't start.
+
+## Run throwaway TypeScript with Node, not vitest pointed outside the repo
+- **What happened:** `npx vitest run --root / <scratchpad>/x.test.ts` made vitest crawl the whole filesystem, and it hung until stopped.
+- **Rule:** for a quick look at what a module produces, write a plain script in the scratchpad that imports by absolute path and run it with `node --experimental-strip-types --no-warnings <script>.ts`. Never set a test runner's root above the repo.

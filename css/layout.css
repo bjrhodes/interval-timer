@@ -558,6 +558,39 @@ body[data-view="timer"] > .container {
     max-width: 8rem;
 }
 
+/* exact times take the place of sessions a week while they're open. */
+.field:has(+ .guide__times[open]) {
+    display: none;
+}
+
+.guide__times {
+    margin-bottom: 1.25rem;
+}
+
+.guide__times summary {
+    display: list-item;
+    cursor: pointer;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.guide__days {
+    display: grid;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.guide__day {
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.guide__day-name {
+    font-weight: 600;
+}
+
 .guide__back {
     margin-top: 0.5rem;
 }

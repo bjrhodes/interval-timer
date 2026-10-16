@@ -112,6 +112,82 @@ describe('guided plans', () => {
         });
     });
 
+    describe('exact times', () => {
+        const everyDay = [[60], [60], [60], [60], [60], [60], [60]],
+            weekend = [[], [60], [], [60], [], [180], []],
+            slotted = (slots: number[][], overrides: Partial<Plan> = {}) => ({...guided.create('perceived', null, undefined, slots), ...overrides}),
+            minutesOf = (session: Workout) => session.intervals.reduce((total, interval) => total + interval.time, 0),
+            hard = (session: Workout) => Math.max(...session.intervals.map((interval) => interval.effort!)) >= 7,
+            dayOf = (session: Workout) => guided.days.findIndex((day) => session.title.includes(', ' + day.slice(0, 3) + ':')),
+            week = (plan: Plan, n: number) => guided.block(plan).filter((session) => session.id.includes('-w' + n + '-'));
+
+        it('estimates load as hours times intensity squared, so an hour at threshold is about 100', () => {
+            expect(guided.loadOf([{action: '', time: 60, unit: 'minutes', effort: 7}])).toBeCloseTo(100, 0);
+            expect(guided.loadOf([{action: '', time: 30, unit: 'minutes', effort: 7}])).toBeCloseTo(50, 0);
+        });
+
+        it('keeps usable slots, and falls back to sessions a week otherwise', () => {
+            expect(slotted(weekend)).toMatchObject({slots: weekend});
+            expect(slotted(weekend).sessionsPerWeek).toBeUndefined();
+            expect(guided.create('perceived', null, 2, [[60], [], [], [], [], [], []])).toMatchObject({sessionsPerWeek: 2});
+            expect(guided.create('perceived', null, 2, [[20], [20], [], [], [], [], []])).toMatchObject({sessionsPerWeek: 2});
+            expect(guided.create('perceived', null, 2, [[60, 20, 20], [60], [], [], [], [], []])).toMatchObject({sessionsPerWeek: 2});
+            expect(guided.create('perceived', null, 2, [[60], [60]])).toMatchObject({sessionsPerWeek: 2});
+        });
+
+        it('keeps a rest day, and never puts hard days back to back, when every day is offered', () => {
+            const plan = slotted(everyDay);
+            [1, 2, 3, 4].forEach((n) => {
+                const sessions = week(plan, n),
+                    hardDays = sessions.filter(hard).map(dayOf);
+                expect(new Set(sessions.map(dayOf)).size).toBe(6);
+                expect(hardDays.length).toBeLessThanOrEqual(3);
+                expect(hardDays.every((day) => !hardDays.includes((day + 1) % 7))).toBe(true);
+            });
+            expect(week(plan, 1).filter(hard)).toHaveLength(3);
+            expect(guided.restDay(everyDay)).toBe(6);
+        });
+
+        it('fits every session in its slot, and puts the long ride on the longest day', () => {
+            [slotted(everyDay), slotted(weekend, {level: 6}), slotted([[30, 20], [], [45], [], [90, 30], [], []])].forEach((plan) =>
+                guided.block(plan).forEach((session) => expect(minutesOf(session)).toBeLessThanOrEqual(Math.max(...plan.slots![dayOf(session)]))));
+            expect(week(slotted(weekend), 1).map((session) => session.title)).toEqual([
+                'Block 1, week 1, Tue: Threshold', 'Block 1, week 1, Thu: VO2 max', 'Block 1, week 1, Sat: Endurance',
+            ]);
+        });
+
+        it('builds the load through the build weeks and eases off in the last', () => {
+            const loads = [1, 2, 3, 4].map((n) => week(slotted(weekend), n).reduce((total, session) => total + guided.loadOf(session.intervals), 0));
+            expect(loads[1]).toBeGreaterThan(loads[0]);
+            expect(loads[2]).toBeGreaterThan(loads[1]);
+            expect(loads[3]).toBeLessThan(loads[0] * 0.7);
+            expect(loads[0]).toBeCloseTo(150, -1);
+        });
+
+        it.each([1, 2, 3, 4, 5, 6])('never eases off mid-block in short slots, at level %i', (level) => {
+            const loads = [1, 2, 3].map((n) => week(slotted([[30], [45], [], [], [], [], []], {level}), n)
+                .reduce((total, session) => total + guided.loadOf(session.intervals), 0));
+            expect(loads[1]).toBeGreaterThanOrEqual(loads[0]);
+            expect(loads[2]).toBeGreaterThanOrEqual(loads[1]);
+        });
+
+        it('only gives a second ride in a day an easy spin', () => {
+            const sessions = week(slotted([[60, 30], [], [60, 45], [], [60], [], []]), 1);
+            expect(sessions).toHaveLength(5);
+            sessions.filter((session, i) => i && dayOf(sessions[i - 1]) === dayOf(session))
+                .forEach((session) => expect(session.title).toMatch(/Easy spin$/));
+        });
+
+        it('ends the block with the test on a day long enough for it, after openers', () => {
+            const plan = running({sessionsPerWeek: undefined, slots: [[30], [], [45], [], [60], [], [20]]}),
+                last = week(plan, 4);
+            expect(last.map((session) => session.title.replace('Block 1, week 4, ', ''))).toEqual([
+                'Mon: Easy spin', 'Wed: Openers', 'Fri: Ramp test', 'Sun: Easy spin',
+            ]);
+            expect(guided.next({...plan, completed: guided.block(plan).slice(0, -2).map((session) => session.id)}, 1)[0].test).toBe(true);
+        });
+    });
+
     describe('a test result', () => {
         it('sets the level from how far the first test got', () => {
             const level = (steps: number) => applyResult(started(), {}, {steps, value: 300}).plan.level;
